@@ -1,0 +1,88 @@
+{{ calendar_events|json_script:"calendar-events-data" }}
+<div x-data="calendarWidget()" class="bg-white rounded-2xl p-4 border border-japem-accent/30 h-full">
+  <div class="flex items-center justify-between mb-4">
+    <h3 class="text-base font-bold capitalize text-japem-dark" x-text="monthLabel"></h3>
+    <div class="flex gap-1">
+      <button type="button" @click="prevMonth()" class="p-1.5 rounded-lg hover:bg-japem-bg text-japem-muted hover:text-japem-green transition">&#8592;</button>
+      <button type="button" @click="nextMonth()" class="p-1.5 rounded-lg hover:bg-japem-bg text-japem-muted hover:text-japem-green transition">&#8594;</button>
+    </div>
+  </div>
+
+  <div class="grid grid-cols-7 mb-1 text-center text-[10px] font-bold text-japem-accent uppercase">
+    <div>D</div><div>L</div><div>M</div><div>M</div><div>J</div><div>V</div><div>S</div>
+  </div>
+
+  <div class="grid grid-cols-7 gap-1">
+    <template x-for="n in leadingBlanks" :key="'blank-' + n"><div></div></template>
+    <template x-for="day in daysInMonth" :key="day">
+      <button
+        type="button"
+        @click="selectDay(day)"
+        class="aspect-square rounded-lg text-xs font-bold flex flex-col items-center justify-center transition"
+        :class="dayClasses(day)"
+      >
+        <span x-text="day"></span>
+        <div class="flex gap-0.5 mt-0.5 h-1">
+          <span x-show="hasType(day, 'acuerdo')" class="w-1 h-1 rounded-full" :class="isToday(day) ? 'bg-white' : 'bg-japem-green'"></span>
+          <span x-show="hasType(day, 'recordatorio')" class="w-1 h-1 rounded-full bg-orange-500"></span>
+        </div>
+      </button>
+    </template>
+  </div>
+
+  <div x-show="selectedDay" x-cloak class="mt-3 border-t border-japem-bg pt-3">
+    <p class="text-xs font-bold text-japem-dark mb-2">
+      Eventos del <span x-text="selectedDay"></span> de <span class="lowercase" x-text="monthLabel"></span>
+    </p>
+    <template x-for="evt in selectedEvents" :key="evt.title + evt.date">
+      <div class="text-xs p-2 rounded-lg mb-1" :class="evt.type === 'acuerdo' ? 'bg-japem-bg text-japem-green' : 'bg-orange-50 text-orange-700'">
+        <span class="font-bold uppercase text-[9px]" x-text="evt.type"></span>
+        <div x-text="evt.title"></div>
+      </div>
+    </template>
+    <p x-show="selectedEvents.length === 0" class="text-xs text-japem-muted">Sin eventos programados.</p>
+  </div>
+</div>
+
+<script>
+  function calendarWidget() {
+    return {
+      events: JSON.parse(document.getElementById("calendar-events-data").textContent),
+      current: new Date(),
+      selectedDay: null,
+      get year() { return this.current.getFullYear(); },
+      get month() { return this.current.getMonth(); },
+      get monthLabel() {
+        return this.current.toLocaleDateString("es-MX", { month: "long", year: "numeric" });
+      },
+      get daysInMonth() { return new Date(this.year, this.month + 1, 0).getDate(); },
+      get leadingBlanks() { return new Date(this.year, this.month, 1).getDay(); },
+      get selectedEvents() {
+        if (!this.selectedDay) return [];
+        const d = this.dateStr(this.selectedDay);
+        return this.events.filter((e) => e.date === d);
+      },
+      dateStr(day) {
+        const m = String(this.month + 1).padStart(2, "0");
+        const dd = String(day).padStart(2, "0");
+        return `${this.year}-${m}-${dd}`;
+      },
+      hasType(day, type) {
+        const d = this.dateStr(day);
+        return this.events.some((e) => e.date === d && e.type === type);
+      },
+      isToday(day) {
+        const t = new Date();
+        return t.getFullYear() === this.year && t.getMonth() === this.month && t.getDate() === day;
+      },
+      dayClasses(day) {
+        if (this.isToday(day)) return "bg-japem-green text-white";
+        if (this.selectedDay === day) return "bg-japem-bg text-japem-green ring-2 ring-japem-green";
+        return "hover:bg-japem-bg text-japem-dark";
+      },
+      prevMonth() { this.current = new Date(this.year, this.month - 1, 1); this.selectedDay = null; },
+      nextMonth() { this.current = new Date(this.year, this.month + 1, 1); this.selectedDay = null; },
+      selectDay(day) { this.selectedDay = this.selectedDay === day ? null : day; },
+    };
+  }
+</script>

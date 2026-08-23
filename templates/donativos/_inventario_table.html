@@ -1,0 +1,30 @@
+<div id="inventario-table" class="bg-white rounded-2xl shadow overflow-hidden">
+  <table class="w-full text-sm">
+    <thead class="bg-japem-bg text-japem-dark text-left">
+      <tr>
+        <th class="px-4 py-3">Producto</th>
+        <th class="px-4 py-3">Categoría</th>
+        <th class="px-4 py-3">Unidad</th>
+        <th class="px-4 py-3">Estado</th>
+        <th class="px-4 py-3 text-right">Stock actual</th>
+        <th class="px-4 py-3 text-right">Valor deducible</th>
+        <th class="px-4 py-3">Caducidad</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for item in resumen %}
+      <tr class="border-t border-japem-accent/20">
+        <td class="px-4 py-3 font-medium text-japem-dark">{{ item.nombre }}</td>
+        <td class="px-4 py-3 text-japem-muted">{{ item.categoria_producto|default:"—" }}</td>
+        <td class="px-4 py-3 text-japem-muted">{{ item.unidad_medida|default:"—" }}</td>
+        <td class="px-4 py-3">{{ item.estado|default:"—" }}</td>
+        <td class="px-4 py-3 text-right font-bold">{{ item.cantidad_actual }}</td>
+        <td class="px-4 py-3 text-right">${{ item.precio_total|floatformat:2 }}</td>
+        <td class="px-4 py-3 text-japem-muted">{{ item.fecha_caducidad|default:"—" }}</td>
+      </tr>
+      {% empty %}
+      <tr><td colspan="7" class="px-4 py-8 text-center text-japem-muted">Sin stock disponible.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>

@@ -1,0 +1,78 @@
+{% extends "base.html" %}
+
+{% block title %}{{ iap.nombre_iap }} · JAPEM{% endblock %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto px-6 py-8">
+  <div class="flex items-center justify-between mb-6">
+    <h1 class="text-2xl font-bold text-japem-dark">{{ iap.nombre_iap }}</h1>
+    <a href="{% url 'iaps:list' %}" class="text-japem-green hover:underline font-medium">&larr; Volver al padrón</a>
+  </div>
+
+  <div class="bg-white rounded-2xl shadow p-6 space-y-6">
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
+      <div>
+        <p class="text-xs font-bold text-japem-muted uppercase">Estatus</p>
+        <p class="font-bold {% if iap.estatus == 'Activa' %}text-japem-green{% else %}text-red-600{% endif %}">{{ iap.estatus }}</p>
+      </div>
+      <div>
+        <p class="text-xs font-bold text-japem-muted uppercase">Rubro</p>
+        <p class="font-bold text-japem-dark">{{ iap.rubro|default:"—" }}</p>
+      </div>
+      <div>
+        <p class="text-xs font-bold text-japem-muted uppercase">Personas beneficiadas</p>
+        <p class="font-bold text-japem-dark">{{ iap.personas_beneficiadas }}</p>
+      </div>
+      <div>
+        <p class="text-xs font-bold text-japem-muted uppercase">Veces donado</p>
+        <p class="font-bold text-japem-dark">{{ iap.veces_donado }}</p>
+      </div>
+    </div>
+
+    <div>
+      <p class="text-xs font-bold text-japem-muted uppercase mb-2">Clasificación</p>
+      <div class="flex flex-wrap gap-1.5">
+        {% for c in iap.clasificacion_list %}
+        <span class="px-2 py-1 rounded text-xs font-bold border bg-japem-bg text-japem-dark">{{ c }}</span>
+        {% empty %}
+        <span class="text-japem-muted text-sm">Sin clasificación</span>
+        {% endfor %}
+      </div>
+    </div>
+
+    <div>
+      <p class="text-xs font-bold text-japem-muted uppercase mb-2">Actividades específicas</p>
+      <div class="flex flex-wrap gap-1.5">
+        {% for a in iap.actividad_list %}
+        <span class="px-2 py-1 rounded text-xs font-medium border border-japem-accent/50 bg-japem-bg text-japem-dark">{{ a }}</span>
+        {% empty %}
+        <span class="text-japem-muted text-sm">Sin actividades registradas</span>
+        {% endfor %}
+      </div>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <div>
+        <p class="text-xs font-bold text-japem-muted uppercase">Tipo de beneficiario</p>
+        <p class="text-japem-dark text-sm">{{ iap.tipo_beneficiario|default:"—" }}</p>
+      </div>
+      <div>
+        <p class="text-xs font-bold text-japem-muted uppercase">Necesidad complementaria</p>
+        <p class="text-japem-dark text-sm">{{ iap.necesidad_complementaria|default:"—" }}</p>
+      </div>
+    </div>
+
+    <div class="flex gap-3 pt-2 border-t border-japem-accent/30">
+      <span class="px-3 py-1.5 rounded-full text-xs font-bold border {% if iap.es_certificada %}bg-japem-bg text-japem-green border-japem-accent{% else %}bg-gray-50 text-japem-muted border-gray-200{% endif %}">
+        {% if iap.es_certificada %}✓{% else %}✗{% endif %} Certificada
+      </span>
+      <span class="px-3 py-1.5 rounded-full text-xs font-bold border {% if iap.tiene_donataria_autorizada %}bg-japem-bg text-japem-green border-japem-accent{% else %}bg-gray-50 text-japem-muted border-gray-200{% endif %}">
+        {% if iap.tiene_donataria_autorizada %}✓{% else %}✗{% endif %} Donataria autorizada
+      </span>
+      <span class="px-3 py-1.5 rounded-full text-xs font-bold border {% if iap.tiene_padron_beneficiarios %}bg-japem-bg text-japem-green border-japem-accent{% else %}bg-gray-50 text-japem-muted border-gray-200{% endif %}">
+        {% if iap.tiene_padron_beneficiarios %}✓{% else %}✗{% endif %} Padrón vigente
+      </span>
+    </div>
+  </div>
+</div>
+{% endblock %}

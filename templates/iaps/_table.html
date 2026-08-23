@@ -1,0 +1,63 @@
+<div id="iaps-table" class="bg-white rounded-2xl shadow overflow-hidden">
+  <table class="w-full text-sm">
+    <thead class="bg-japem-bg text-japem-dark text-left">
+      <tr>
+        <th class="px-4 py-3">Institución</th>
+        <th class="px-4 py-3">Clasificación</th>
+        <th class="px-4 py-3">Nec. Extra</th>
+        <th class="px-4 py-3 text-center">Validaciones</th>
+        <th class="px-4 py-3 text-center">Historial</th>
+        <th class="px-4 py-3"></th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for iap in iaps %}
+      <tr class="border-t border-japem-accent/20">
+        <td class="px-4 py-3">
+          <div class="font-bold text-japem-dark">{{ iap.nombre_iap }}</div>
+          <div class="flex items-center gap-2 mt-1">
+            <span class="text-[10px] bg-japem-bg text-japem-green px-1.5 py-0.5 rounded border border-japem-accent font-bold uppercase">{{ iap.rubro|default:"—" }}</span>
+            <span class="text-[10px] font-bold px-1.5 py-0.5 rounded {% if iap.estatus == 'Activa' %}bg-green-50 text-green-700{% else %}bg-red-50 text-red-700{% endif %}">{{ iap.estatus }}</span>
+          </div>
+        </td>
+        <td class="px-4 py-3">
+          <div class="flex flex-wrap gap-1 max-w-[150px]">
+            {% for c in iap.clasificacion_list %}
+            <span class="px-1.5 py-0.5 rounded text-[10px] font-bold border bg-japem-bg text-japem-dark">{{ c }}</span>
+            {% endfor %}
+          </div>
+        </td>
+        <td class="px-4 py-3 text-japem-muted max-w-[200px] truncate">{{ iap.necesidad_complementaria|default:"—" }}</td>
+        <td class="px-4 py-3 text-center text-xs">
+          <div class="flex justify-center gap-1">
+            {% if iap.es_certificada %}<span title="Certificada" class="text-yellow-600">★</span>{% endif %}
+            {% if iap.tiene_donataria_autorizada %}<span title="Donataria autorizada" class="text-blue-600">D</span>{% endif %}
+            {% if iap.tiene_padron_beneficiarios %}<span title="Padrón vigente" class="text-green-600">P</span>{% endif %}
+          </div>
+        </td>
+        <td class="px-4 py-3 text-center text-japem-muted">{{ iap.veces_donado }}x</td>
+        <td class="px-4 py-3 text-right space-x-3 whitespace-nowrap">
+          <a href="{% url 'iaps:detail' iap.pk %}" class="text-japem-muted hover:text-japem-green font-medium">Ver</a>
+          {% if can_edit %}
+          <button
+            @click="modalOpen = true"
+            hx-get="{% url 'iaps:update' iap.pk %}"
+            hx-target="#modal-content"
+            class="text-japem-green hover:underline font-medium"
+          >Editar</button>
+          <button
+            hx-post="{% url 'iaps:delete' iap.pk %}"
+            hx-target="#iaps-table"
+            hx-swap="outerHTML"
+            hx-confirm="¿Eliminar esta IAP?"
+            class="text-red-500 hover:underline font-medium"
+          >Eliminar</button>
+          {% endif %}
+        </td>
+      </tr>
+      {% empty %}
+      <tr><td colspan="6" class="px-4 py-8 text-center text-japem-muted">No hay IAPs registradas.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>

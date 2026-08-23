@@ -1,0 +1,101 @@
+{% extends "base.html" %}
+
+{% block title %}Donativo #{{ donativo.pk }} · JAPEM{% endblock %}
+
+{% block content %}
+<div class="max-w-6xl mx-auto px-6 py-8">
+  <div class="flex items-center justify-between mb-6">
+    <h1 class="text-2xl font-bold text-japem-dark">Detalle de Entrada #{{ donativo.pk }}</h1>
+    <a href="{% url 'donativos:list' %}" class="text-japem-green hover:underline font-medium">&larr; Volver</a>
+  </div>
+
+  <div class="bg-japem-bg p-6 rounded-2xl border border-japem-accent/40 grid grid-cols-2 md:grid-cols-4 gap-4 mb-6 text-sm">
+    <div>
+      <p class="text-xs font-bold text-japem-muted uppercase">Donante</p>
+      <p class="font-bold text-japem-dark">{{ donativo.donante.razon_social }}</p>
+    </div>
+    <div>
+      <p class="text-xs font-bold text-japem-muted uppercase">Fecha</p>
+      <p class="font-bold text-japem-green">{{ donativo.fecha_donativo }}</p>
+    </div>
+    <div>
+      <p class="text-xs font-bold text-japem-muted uppercase">Total Deducible</p>
+      <p class="font-bold text-japem-dark">${{ donativo.monto_total_deducible|floatformat:2 }}</p>
+    </div>
+    <div>
+      <p class="text-xs font-bold text-japem-muted uppercase">Observaciones</p>
+      <p class="text-japem-muted italic">{{ donativo.observaciones|default:"Sin observaciones" }}</p>
+    </div>
+  </div>
+
+  {% if can_edit %}
+  {% for item in donativo.inventarios.all %}
+  {% if item.cantidad_actual > 0 %}
+  <form id="devolver-{{ item.pk }}" method="post" action="{% url 'donativos:devolver_item' item.pk %}">{% csrf_token %}</form>
+  {% endif %}
+  {% endfor %}
+
+  <form id="precios-form" method="post" action="{% url 'donativos:actualizar_precios' donativo.pk %}">{% csrf_token %}</form>
+  {% endif %}
+
+  <div class="bg-white rounded-2xl shadow overflow-hidden mb-4">
+    <table class="w-full text-sm">
+      <thead class="bg-japem-bg text-japem-dark text-left">
+        <tr>
+          <th class="px-3 py-3">Producto</th>
+          <th class="px-3 py-3 text-center">Disponible</th>
+          <th class="px-3 py-3 text-right">P. Deducible</th>
+          <th class="px-3 py-3 text-right">Total Ded.</th>
+          <th class="px-3 py-3 text-center text-japem-green">P. Venta</th>
+          <th class="px-3 py-3 text-right text-japem-green">Total Venta</th>
+          {% if can_edit %}<th class="px-3 py-3 text-center">Devolver</th>{% endif %}
+        </tr>
+      </thead>
+      <tbody>
+        {% for item in donativo.inventarios.all %}
+        <tr class="border-t border-japem-accent/20 {% if item.cantidad_actual <= 0 %}opacity-50{% endif %}">
+          <td class="px-3 py-2 font-medium text-japem-dark">
+            {{ item.nombre_producto }}
+            <div class="text-[10px] text-japem-muted">{{ item.clave_unidad }}</div>
+          </td>
+          <td class="px-3 py-2 text-center font-bold">{{ item.cantidad_actual|floatformat:0 }}</td>
+          <td class="px-3 py-2 text-right text-japem-muted">${{ item.precio_unitario_deducible|floatformat:2 }}</td>
+          <td class="px-3 py-2 text-right text-japem-muted">${{ item.monto_deducible_total|floatformat:2 }}</td>
+          <td class="px-3 py-2 text-center">
+            <input type="number" step="0.01" min="0" name="precio_venta_unitario_{{ item.pk }}"
+                   value="{{ item.precio_venta_unitario }}" {% if can_edit %}form="precios-form"{% endif %}
+                   {% if item.cantidad_actual <= 0 or not can_edit %}disabled{% endif %}
+                   class="w-24 px-2 py-1 border border-japem-accent rounded-lg text-right focus:outline-none focus:border-japem-green">
+          </td>
+          <td class="px-3 py-2 text-right font-bold text-japem-green">${{ item.precio_venta_total|floatformat:2 }}</td>
+          {% if can_edit %}
+          <td class="px-3 py-2 text-center">
+            {% if item.cantidad_actual > 0 %}
+            <div class="flex items-center justify-center gap-1">
+              <input type="number" min="1" max="{{ item.cantidad_actual|floatformat:0 }}" name="cantidad"
+                     value="1" form="devolver-{{ item.pk }}"
+                     class="w-14 px-1 py-1 border border-japem-accent rounded-lg text-center text-xs">
+              <button type="submit" form="devolver-{{ item.pk }}"
+                      onclick="return confirm('¿Retirar esta cantidad de {{ item.nombre_producto|escapejs }} por merma/devolución?');"
+                      class="text-red-500 hover:underline text-xs font-bold">Devolver</button>
+            </div>
+            {% else %}
+            <span class="text-japem-muted text-xs">—</span>
+            {% endif %}
+          </td>
+          {% endif %}
+        </tr>
+        {% empty %}
+        <tr><td colspan="7" class="px-4 py-8 text-center text-japem-muted">Este donativo no tiene productos.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  {% if can_edit %}
+  <div class="flex justify-end">
+    <button type="submit" form="precios-form" class="px-6 py-3 bg-japem-green hover:bg-japem-greendark text-white font-bold rounded-xl shadow transition">Guardar Precios</button>
+  </div>
+  {% endif %}
+</div>
+{% endblock %}

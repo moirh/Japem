@@ -1,0 +1,51 @@
+{% extends "base.html" %}
+
+{% block title %}Donativos · JAPEM{% endblock %}
+
+{% block content %}
+<div class="max-w-6xl mx-auto px-6 py-8">
+  <div class="flex justify-between items-center mb-6">
+    <h1 class="text-2xl font-bold text-japem-dark">Entradas (Donativos)</h1>
+    {% if can_edit %}
+    <a href="{% url 'donativos:crear' %}" class="bg-japem-green hover:bg-japem-greendark text-white font-bold px-4 py-2 rounded-xl shadow transition">+ Registrar Entrada</a>
+    {% endif %}
+  </div>
+  <div class="bg-white rounded-2xl shadow overflow-hidden">
+    <table class="w-full text-sm">
+      <thead class="bg-japem-bg text-japem-dark text-left">
+        <tr>
+          <th class="px-4 py-3">Fecha</th>
+          <th class="px-4 py-3">Donante</th>
+          <th class="px-4 py-3">Productos</th>
+          <th class="px-4 py-3 text-right">Monto Total</th>
+          <th class="px-4 py-3"></th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for donativo in donativos %}
+        <tr class="border-t border-japem-accent/20">
+          <td class="px-4 py-3 whitespace-nowrap">{{ donativo.fecha_donativo }}</td>
+          <td class="px-4 py-3 font-medium text-japem-dark">{{ donativo.donante.razon_social }}</td>
+          <td class="px-4 py-3 text-japem-muted">
+            {% for item in donativo.inventarios.all|slice:":2" %}
+              <div>{{ item.nombre_producto }} <span class="text-xs">({{ item.cantidad }} {{ item.clave_unidad }})</span></div>
+            {% endfor %}
+            {% with total=donativo.inventarios.all|length %}
+              {% if total > 2 %}
+                <span class="text-xs text-japem-green font-bold">+ {{ total|add:"-2" }} más...</span>
+              {% endif %}
+            {% endwith %}
+          </td>
+          <td class="px-4 py-3 text-right font-bold text-japem-green whitespace-nowrap">${{ donativo.monto_total_deducible|floatformat:2 }}</td>
+          <td class="px-4 py-3 text-right">
+            <a href="{% url 'donativos:detalle' donativo.pk %}" class="text-japem-green hover:underline font-medium">Ver Detalles</a>
+          </td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="5" class="px-4 py-8 text-center text-japem-muted">No hay entradas registradas.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

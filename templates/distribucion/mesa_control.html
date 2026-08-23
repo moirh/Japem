@@ -1,0 +1,68 @@
+{% extends "base.html" %}
+
+{% block title %}Mesa de Control de Entregas · JAPEM{% endblock %}
+
+{% block content %}
+<div class="max-w-6xl mx-auto px-6 py-8">
+  <div class="flex justify-between items-center mb-6">
+    <h1 class="text-2xl font-bold text-japem-dark">Mesa de Control de Entregas</h1>
+    <a href="{% url 'distribucion:asignar' %}" class="bg-japem-green hover:bg-japem-greendark text-white font-bold px-4 py-2 rounded-xl shadow transition">+ Nueva Distribución</a>
+  </div>
+
+  <div class="bg-white rounded-2xl shadow overflow-hidden">
+    <table class="w-full text-sm">
+      <thead class="bg-japem-bg text-japem-dark text-left">
+        <tr>
+          <th class="px-4 py-3">Fecha</th>
+          <th class="px-4 py-3">Beneficiario</th>
+          <th class="px-4 py-3">Producto</th>
+          <th class="px-4 py-3">Estatus</th>
+          <th class="px-4 py-3"></th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for fila in filas %}
+        {% with asignacion=fila.asignacion detalle=fila.detalle %}
+        <tr class="border-t border-japem-accent/20">
+          <td class="px-4 py-3 whitespace-nowrap">
+            {{ asignacion.fecha_asignacion|default:asignacion.created_at|date:"d M Y" }}
+            {% if asignacion.estatus == "entregado" %}
+            <div class="text-[10px] text-japem-green font-bold">Entregado: {{ asignacion.fecha_entrega_real|date:"d M Y" }}</div>
+            {% endif %}
+          </td>
+          <td class="px-4 py-3 font-bold text-japem-dark">{{ asignacion.iap.nombre_iap }}</td>
+          <td class="px-4 py-3">
+            {{ detalle.inventario.nombre_producto }}
+            <span class="bg-japem-bg text-japem-green text-xs px-2 py-0.5 rounded-full font-bold ml-1">x{{ detalle.cantidad }}</span>
+          </td>
+          <td class="px-4 py-3">
+            {% if asignacion.estatus == "entregado" %}
+            <span class="bg-japem-bg text-japem-green px-3 py-1 rounded-full font-bold text-xs border border-japem-accent">ENTREGADO</span>
+            {% else %}
+            <span class="bg-amber-50 text-amber-700 px-3 py-1 rounded-full font-bold text-xs border border-amber-200">PENDIENTE</span>
+            {% endif %}
+          </td>
+          <td class="px-4 py-3 text-right">
+            {% if asignacion.estatus == "entregado" %}
+            <span class="text-xs text-japem-muted">{{ asignacion.responsable_entrega }} · {{ asignacion.lugar_entrega }}</span>
+            {% elif can_edit %}
+            <button
+              @click="modalOpen = true"
+              hx-get="{% url 'distribucion:entregar_form' asignacion.pk %}"
+              hx-target="#modal-content"
+              class="text-japem-green hover:underline font-medium"
+            >Entregar</button>
+            {% else %}
+            <span class="text-xs text-japem-muted italic">Solo lectura</span>
+            {% endif %}
+          </td>
+        </tr>
+        {% endwith %}
+        {% empty %}
+        <tr><td colspan="5" class="px-4 py-8 text-center text-japem-muted">No hay asignaciones registradas.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

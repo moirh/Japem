@@ -1,0 +1,148 @@
+{% extends "base.html" %}
+
+{% block title %}Inicio · JAPEM{% endblock %}
+
+{% block content %}
+<div class="max-w-7xl mx-auto px-6 py-8" x-data="{ open: false, type: 'acuerdo' }">
+
+  <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+    <div class="bg-white p-6 rounded-2xl shadow border-t-4 border-japem-green">
+      <p class="text-xs font-bold text-japem-muted uppercase tracking-wider">Acuerdos</p>
+      <h3 class="text-4xl font-extrabold text-japem-green mt-1">{{ acuerdos|length }}</h3>
+    </div>
+    <div class="bg-white p-6 rounded-2xl shadow border-t-4 border-japem-muted">
+      <p class="text-xs font-bold text-japem-muted uppercase tracking-wider">Pendientes</p>
+      <h3 class="text-4xl font-extrabold text-japem-dark mt-1">{{ recordatorios|length }}</h3>
+    </div>
+    <div class="bg-white p-6 rounded-2xl shadow border-t-4 border-japem-accent">
+      <p class="text-xs font-bold text-japem-muted uppercase tracking-wider">Próximo evento</p>
+      <h3 class="text-base font-bold text-japem-dark mt-2 truncate">
+        {% if proximo %}{{ proximo.title }} — {{ proximo.date|date:"d M" }}{% else %}Sin pendientes{% endif %}
+      </h3>
+    </div>
+    <div class="bg-white p-6 rounded-2xl shadow border-t-4 border-japem-green">
+      <p class="text-xs font-bold text-japem-muted uppercase tracking-wider">Donativos del mes</p>
+      <h3 class="text-4xl font-extrabold text-japem-green mt-1">{{ donativos_mes }}</h3>
+    </div>
+  </div>
+
+  <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+
+    <div class="lg:col-span-5 bg-white rounded-2xl shadow border border-japem-accent/30 overflow-hidden">
+      <div class="p-6 border-b border-japem-bg flex justify-between items-center">
+        <h2 class="text-lg font-bold text-japem-dark">Mis Acuerdos</h2>
+        <button @click="type = 'acuerdo'; open = true" class="bg-japem-green hover:bg-japem-greendark text-white px-4 py-2 rounded-xl font-bold text-sm shadow transition">+ Nuevo</button>
+      </div>
+      <div class="p-4 space-y-3 max-h-[500px] overflow-y-auto">
+        {% for a in acuerdos %}
+        <div class="border border-japem-accent/30 p-4 rounded-xl shadow-sm">
+          <div class="flex justify-between items-start gap-2">
+            <h3 class="font-bold text-japem-dark">{{ a.title }}</h3>
+            {% if a.user_id == user.id %}
+            <form method="post" action="{% url 'agenda:acuerdo_delete' a.pk %}">
+              {% csrf_token %}
+              <button type="submit" onclick="return confirm('¿Eliminar este acuerdo?');" class="text-japem-accent hover:text-red-500 transition" title="Eliminar">&times;</button>
+            </form>
+            {% endif %}
+          </div>
+          <p class="text-sm text-japem-muted mt-1 line-clamp-2">{{ a.description }}</p>
+          <div class="flex items-center justify-between mt-3 pt-3 border-t border-japem-bg">
+            <span class="text-xs font-semibold text-japem-green bg-japem-bg py-1 px-2.5 rounded-lg">{{ a.date }}</span>
+            {% if a.user_id == user.id %}
+            <form method="post" action="{% url 'agenda:acuerdo_toggle' a.pk %}">
+              {% csrf_token %}
+              <button type="submit" class="text-xs text-japem-muted hover:text-japem-green font-medium transition">Completar</button>
+            </form>
+            {% else %}
+            <span class="text-xs text-japem-muted italic">Compartido contigo</span>
+            {% endif %}
+          </div>
+        </div>
+        {% empty %}
+        <p class="text-center text-japem-muted italic py-8">No hay acuerdos pendientes.</p>
+        {% endfor %}
+      </div>
+    </div>
+
+    <div class="lg:col-span-7 bg-white rounded-2xl shadow border border-japem-accent/30 overflow-hidden">
+      <div class="p-6 border-b border-japem-bg flex justify-between items-center">
+        <h2 class="text-lg font-bold text-japem-dark">Mis Recordatorios</h2>
+        <button @click="type = 'recordatorio'; open = true" class="bg-japem-bg border border-japem-accent text-japem-dark hover:bg-japem-accent/30 px-4 py-2 rounded-xl font-bold text-sm transition">+ Nuevo</button>
+      </div>
+      <div class="p-6 grid lg:grid-cols-2 gap-6">
+        <div class="space-y-3 max-h-[420px] overflow-y-auto">
+          {% for r in recordatorios %}
+          <div class="p-3 rounded-xl border border-japem-accent/30 flex items-center justify-between gap-3">
+            <div class="min-w-0">
+              <h4 class="font-bold text-sm text-japem-dark truncate">{{ r.title }}</h4>
+              <span class="text-xs text-japem-muted">{{ r.date }}</span>
+            </div>
+            <div class="flex items-center gap-1 shrink-0">
+              <form method="post" action="{% url 'agenda:recordatorio_toggle' r.pk %}">
+                {% csrf_token %}
+                <button type="submit" class="text-japem-accent hover:text-japem-green p-1.5 rounded-md hover:bg-japem-bg transition" title="Marcar como realizado">&#10003;</button>
+              </form>
+              <form method="post" action="{% url 'agenda:recordatorio_delete' r.pk %}">
+                {% csrf_token %}
+                <button type="submit" onclick="return confirm('¿Eliminar este recordatorio?');" class="text-japem-accent hover:text-red-500 p-1.5 rounded-md hover:bg-red-50 transition" title="Eliminar">&times;</button>
+              </form>
+            </div>
+          </div>
+          {% empty %}
+          <p class="text-center text-japem-muted italic py-8">¡Todo al día!</p>
+          {% endfor %}
+        </div>
+        <div>
+          {% include "agenda/_calendar.html" %}
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div
+    x-show="open"
+    x-cloak
+    class="fixed inset-0 bg-black/40 flex items-center justify-center z-[100] px-4"
+    @click.self="open = false"
+  >
+    <div class="bg-white rounded-2xl shadow-xl w-full max-w-lg p-6">
+      <h2 class="text-xl font-bold text-japem-dark mb-4" x-text="type === 'acuerdo' ? 'Nuevo Acuerdo' : 'Nuevo Recordatorio'"></h2>
+      <form method="post" :action="type === 'acuerdo' ? '{% url 'agenda:acuerdo_create' %}' : '{% url 'agenda:recordatorio_create' %}'" class="space-y-4">
+        {% csrf_token %}
+        <div>
+          <label class="block text-xs font-bold text-japem-dark uppercase mb-1">Título</label>
+          <input type="text" name="title" required
+                 class="w-full px-3 py-2.5 bg-gray-50 border-2 border-gray-200 rounded-xl focus:outline-none focus:bg-white focus:border-japem-green transition">
+        </div>
+        <div x-show="type === 'acuerdo'" x-cloak>
+          <label class="block text-xs font-bold text-japem-dark uppercase mb-1">Descripción</label>
+          <textarea name="description" rows="3" :required="type === 'acuerdo'"
+                    class="w-full px-3 py-2.5 bg-gray-50 border-2 border-gray-200 rounded-xl focus:outline-none focus:bg-white focus:border-japem-green transition"></textarea>
+        </div>
+        <div x-show="type === 'acuerdo'" x-cloak>
+          <label class="block text-xs font-bold text-japem-dark uppercase mb-2">Compartir con (opcional)</label>
+          <div class="grid grid-cols-2 gap-1 max-h-32 overflow-y-auto bg-gray-50 p-2 rounded-lg border border-gray-200">
+            {% for u in usuarios %}
+            <label class="flex items-center gap-2 text-xs p-1 hover:bg-japem-bg rounded cursor-pointer">
+              <input type="checkbox" name="shared_with" value="{{ u.pk }}" class="accent-japem-green">
+              {{ u.name|default:u.username }}
+            </label>
+            {% empty %}
+            <p class="text-xs text-japem-muted col-span-2">No hay otros usuarios.</p>
+            {% endfor %}
+          </div>
+        </div>
+        <div>
+          <label class="block text-xs font-bold text-japem-dark uppercase mb-1">Fecha límite</label>
+          <input type="date" name="date" required value="{{ today|date:'Y-m-d' }}"
+                 class="w-full px-3 py-2.5 bg-gray-50 border-2 border-gray-200 rounded-xl focus:outline-none focus:bg-white focus:border-japem-green transition">
+        </div>
+        <div class="flex justify-end gap-3 pt-2">
+          <button type="button" @click="open = false" class="px-4 py-2 rounded-xl text-japem-dark hover:bg-japem-bg transition">Cancelar</button>
+          <button type="submit" class="px-4 py-2 rounded-xl bg-japem-green hover:bg-japem-greendark text-white font-bold transition">Guardar</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}

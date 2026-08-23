@@ -1,0 +1,85 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{% block title %}JAPEM{% endblock %}</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/htmx.org@1.9.12"></script>
+  <script defer src="https://unpkg.com/alpinejs@3.14.1/dist/cdn.min.js"></script>
+  <link rel="stylesheet" href="{% static 'css/site.css' %}">
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            japem: {
+              green: "#719c44",
+              greendark: "#5e8239",
+              dark: "#353131",
+              muted: "#817e7e",
+              accent: "#c0c6b6",
+              bg: "#f9fafb",
+            },
+          },
+        },
+      },
+    };
+  </script>
+</head>
+<body class="bg-gray-100 text-japem-dark" x-data="{ modalOpen: false }" @closemodal.window="modalOpen = false">
+  {% if user.is_authenticated %}
+  <header class="fixed top-0 left-0 w-full bg-white shadow-md border-b border-japem-accent/30 z-50">
+    <div class="w-full flex justify-between items-center px-6 py-3">
+      <a href="{% url 'home' %}" class="font-extrabold text-japem-green text-lg">JAPEM</a>
+      <nav class="hidden md:flex space-x-2">
+        <a href="{% url 'home' %}" class="px-3 py-1.5 rounded-lg text-sm font-medium text-japem-dark hover:bg-japem-bg hover:text-japem-green transition">Inicio</a>
+        <a href="{% url 'donantes:list' %}" class="px-3 py-1.5 rounded-lg text-sm font-medium text-japem-dark hover:bg-japem-bg hover:text-japem-green transition">Donantes</a>
+        <a href="{% url 'donativos:list' %}" class="px-3 py-1.5 rounded-lg text-sm font-medium text-japem-dark hover:bg-japem-bg hover:text-japem-green transition">Donativos</a>
+        <a href="{% url 'donativos:inventario' %}" class="px-3 py-1.5 rounded-lg text-sm font-medium text-japem-dark hover:bg-japem-bg hover:text-japem-green transition">Inventario</a>
+        <a href="{% url 'iaps:list' %}" class="px-3 py-1.5 rounded-lg text-sm font-medium text-japem-dark hover:bg-japem-bg hover:text-japem-green transition">IAPs</a>
+        <a href="{% url 'distribucion:asignar' %}" class="px-3 py-1.5 rounded-lg text-sm font-medium text-japem-dark hover:bg-japem-bg hover:text-japem-green transition">Distribución</a>
+        <a href="{% url 'distribucion:mesa_control' %}" class="px-3 py-1.5 rounded-lg text-sm font-medium text-japem-dark hover:bg-japem-bg hover:text-japem-green transition">Entregas</a>
+        {% if user.role == 'admin' or user.role == 'superadmin' %}
+        <a href="{% url 'accounts:user_list' %}" class="px-3 py-1.5 rounded-lg text-sm font-medium text-japem-dark hover:bg-japem-bg hover:text-japem-green transition">Usuarios</a>
+        {% endif %}
+      </nav>
+      <div class="flex items-center gap-4 text-sm">
+        <a href="{% url 'accounts:profile' %}" class="text-japem-muted hover:text-japem-green transition">
+          {{ user.username }}
+          <span class="text-[10px] font-bold uppercase bg-japem-bg text-japem-green px-2 py-0.5 rounded-full ml-1">{{ user.get_role_display }}</span>
+        </a>
+        <form method="post" action="{% url 'accounts:logout' %}">
+          {% csrf_token %}
+          <button type="submit" class="text-japem-dark hover:text-red-500 font-medium transition">Salir</button>
+        </form>
+      </div>
+    </div>
+  </header>
+  <div class="h-[65px] w-full"></div>
+  {% endif %}
+
+  <main class="min-h-screen">
+    {% if messages %}
+    <div class="max-w-6xl mx-auto px-6 pt-6 space-y-3">
+      {% for message in messages %}
+      <div class="p-4 rounded-xl text-sm font-medium border {% if message.tags == 'error' %}bg-red-50 text-red-600 border-red-100{% else %}bg-japem-green/10 text-japem-green border-japem-green/20{% endif %}">
+        {{ message }}
+      </div>
+      {% endfor %}
+    </div>
+    {% endif %}
+    {% block content %}{% endblock %}
+  </main>
+
+  <div
+    x-show="modalOpen"
+    x-cloak
+    class="fixed inset-0 bg-black/40 flex items-center justify-center z-[100] px-4"
+    @click.self="modalOpen = false"
+  >
+    <div id="modal-content" class="bg-white rounded-2xl shadow-xl w-full max-w-lg"></div>
+  </div>
+</body>
+</html>

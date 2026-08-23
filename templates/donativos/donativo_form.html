@@ -1,0 +1,116 @@
+{% extends "base.html" %}
+
+{% block title %}Registrar Entrada · JAPEM{% endblock %}
+
+{% block content %}
+<div class="max-w-6xl mx-auto px-6 py-8">
+  <h1 class="text-2xl font-bold text-japem-dark mb-6">Registrar Entrada</h1>
+
+  <form method="post" novalidate>
+    {% csrf_token %}
+    {{ formset.management_form }}
+
+    <div class="bg-japem-bg p-6 rounded-2xl border border-japem-accent/40 mb-6">
+      <h2 class="text-xs font-extrabold text-japem-green uppercase tracking-wide mb-4">Información del Donante</h2>
+      <div class="grid grid-cols-1 md:grid-cols-12 gap-4">
+        <div class="md:col-span-5">
+          <label class="block text-xs font-bold text-japem-dark uppercase mb-1">{{ form.donante.label }}</label>
+          {{ form.donante }}
+          {% if form.donante.errors %}<p class="text-red-500 text-xs mt-1">{{ form.donante.errors.0 }}</p>{% endif %}
+        </div>
+        <div class="md:col-span-3">
+          <label class="block text-xs font-bold text-japem-dark uppercase mb-1">{{ form.fecha_donativo.label }}</label>
+          {{ form.fecha_donativo }}
+        </div>
+        <div class="md:col-span-4">
+          <label class="block text-xs font-bold text-japem-dark uppercase mb-1">{{ form.observaciones.label }}</label>
+          {{ form.observaciones }}
+        </div>
+      </div>
+    </div>
+
+    <div class="flex justify-between items-center mb-4">
+      <h2 class="text-xs font-extrabold text-japem-muted uppercase tracking-wide">Inventario a Ingresar</h2>
+      <button type="button" id="add-detalle" class="bg-japem-bg hover:bg-japem-accent/30 text-japem-dark px-4 py-2 rounded-xl font-bold text-sm border border-japem-accent transition">+ Agregar Fila</button>
+    </div>
+
+    <div id="detalle-rows">
+      {% for detalle_form in formset %}
+        {% include "donativos/_detalle_row.html" with form=detalle_form %}
+      {% endfor %}
+    </div>
+
+    <template id="empty-form-template">
+      {% include "donativos/_detalle_row.html" with form=formset.empty_form %}
+    </template>
+
+    <div class="flex justify-end gap-3 pt-6 border-t border-japem-accent/30 mt-6">
+      <a href="{% url 'donativos:list' %}" class="px-6 py-3 text-japem-dark bg-japem-bg hover:bg-japem-accent/30 rounded-xl font-bold transition">Cancelar</a>
+      <button type="submit" class="px-8 py-3 bg-japem-green hover:bg-japem-greendark text-white font-bold rounded-xl shadow-lg transition">Guardar Entrada</button>
+    </div>
+  </form>
+</div>
+
+<datalist id="catalogo-productos">
+  {% for producto in catalogo %}
+  <option value="{{ producto.nombre }}" data-clave-sat="{{ producto.clave_sat }}" data-categoria="{{ producto.categoria }}" data-unidad="{{ producto.unidad_medida }}"></option>
+  {% endfor %}
+</datalist>
+
+<script>
+  (function () {
+    const container = document.getElementById("detalle-rows");
+    const totalForms = document.getElementById("id_form-TOTAL_FORMS");
+    const addBtn = document.getElementById("add-detalle");
+    const template = document.getElementById("empty-form-template");
+
+    function reindex() {
+      const rows = container.querySelectorAll(".detalle-row");
+      rows.forEach((row, i) => {
+        row.querySelectorAll("[name], [id], label[for]").forEach((el) => {
+          ["name", "id", "for"].forEach((attr) => {
+            const val = el.getAttribute(attr);
+            if (!val) return;
+            if (val.includes("form-__prefix__")) {
+              el.setAttribute(attr, val.replace("form-__prefix__", `form-${i}`));
+            } else if (/form-\d+/.test(val)) {
+              el.setAttribute(attr, val.replace(/form-\d+/, `form-${i}`));
+            }
+          });
+        });
+      });
+      totalForms.value = rows.length;
+    }
+
+    addBtn.addEventListener("click", () => {
+      const fragment = template.content.cloneNode(true);
+      container.appendChild(fragment);
+      reindex();
+    });
+
+    container.addEventListener("click", (e) => {
+      const btn = e.target.closest(".remove-detalle");
+      if (!btn) return;
+      if (container.querySelectorAll(".detalle-row").length > 1) {
+        btn.closest(".detalle-row").remove();
+        reindex();
+      }
+    });
+
+    container.addEventListener("change", (e) => {
+      if (!e.target.classList.contains("nombre-producto-input")) return;
+      const opt = document.querySelector(
+        `#catalogo-productos option[value="${CSS.escape(e.target.value)}"]`
+      );
+      if (!opt) return;
+      const row = e.target.closest(".detalle-row");
+      const claveSat = row.querySelector(".clave-sat-input");
+      const categoria = row.querySelector(".categoria-input");
+      const unidad = row.querySelector(".unidad-input");
+      if (claveSat && opt.dataset.claveSat) claveSat.value = opt.dataset.claveSat;
+      if (categoria && opt.dataset.categoria) categoria.value = opt.dataset.categoria;
+      if (unidad && opt.dataset.unidad) unidad.value = opt.dataset.unidad;
+    });
+  })();
+</script>
+{% endblock %}

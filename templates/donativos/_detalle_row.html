@@ -1,0 +1,52 @@
+<div class="detalle-row bg-white p-5 rounded-2xl border border-japem-accent/40 shadow-sm relative mb-4">
+  <button type="button" class="remove-detalle absolute top-3 right-4 text-japem-accent hover:text-red-500 transition text-xl leading-none">&times;</button>
+  <div class="grid grid-cols-1 md:grid-cols-12 gap-4">
+    <div class="md:col-span-3">
+      <label class="block text-xs font-bold text-japem-muted uppercase mb-1">{{ form.categoria_producto.label }}</label>
+      {{ form.categoria_producto }}
+    </div>
+    <div class="md:col-span-6">
+      <label class="block text-xs font-bold text-japem-green uppercase mb-1">{{ form.nombre_producto.label }}</label>
+      {{ form.nombre_producto }}
+    </div>
+    <div class="md:col-span-3">
+      <label class="block text-xs font-bold text-japem-muted uppercase mb-1">{{ form.clave_sat.label }}</label>
+      {{ form.clave_sat }}
+    </div>
+
+    <div class="md:col-span-3">
+      <label class="block text-xs font-bold text-japem-muted uppercase mb-1">{{ form.estado.label }}</label>
+      {{ form.estado }}
+    </div>
+    <div class="md:col-span-3">
+      <label class="block text-xs font-bold text-japem-muted uppercase mb-1">{{ form.modalidad.label }}</label>
+      {{ form.modalidad }}
+    </div>
+    <div class="md:col-span-3">
+      <label class="block text-xs font-bold text-japem-muted uppercase mb-1">{{ form.clave_unidad.label }}</label>
+      {{ form.clave_unidad }}
+    </div>
+    <div class="md:col-span-3">
+      <label class="block text-xs font-bold text-japem-muted uppercase mb-1">{{ form.fecha_caducidad.label }}</label>
+      {{ form.fecha_caducidad }}
+    </div>
+
+    <div class="md:col-span-2">
+      <label class="block text-xs font-bold text-japem-green uppercase mb-1">{{ form.cantidad.label }}</label>
+      {{ form.cantidad }}
+    </div>
+    <div class="md:col-span-2">
+      <label class="block text-xs font-bold text-japem-muted uppercase mb-1">P. Unitario</label>
+      {{ form.precio_unitario_deducible }}
+    </div>
+    <div class="md:col-span-2">
+      <label class="block text-xs font-bold text-japem-green uppercase mb-1">P. Venta</label>
+      {{ form.precio_venta_unitario }}
+    </div>
+  </div>
+  {% if form.errors %}
+  <div class="mt-3 text-xs text-red-500 space-y-0.5">
+    {% for field in form %}{% for error in field.errors %}<p>{{ field.label }}: {{ error }}</p>{% endfor %}{% endfor %}
+  </div>
+  {% endif %}
+</div>

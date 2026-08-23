@@ -1,0 +1,55 @@
+{% extends "base.html" %}
+
+{% block title %}Mi Perfil · JAPEM{% endblock %}
+
+{% block content %}
+<div class="max-w-2xl mx-auto px-6 py-8">
+  <h1 class="text-2xl font-bold text-japem-dark mb-6">Mi Perfil</h1>
+
+  <form method="post" class="bg-white rounded-2xl shadow p-6 space-y-6">
+    {% csrf_token %}
+
+    <div class="flex items-center gap-4 pb-6 border-b border-japem-bg">
+      <div class="w-16 h-16 rounded-full bg-japem-bg flex items-center justify-center text-japem-green font-bold text-2xl border-2 border-japem-accent">
+        {{ user.name|default:user.username|first|upper }}
+      </div>
+      <div>
+        <h2 class="text-lg font-bold text-japem-dark">{{ user.name|default:user.username }}</h2>
+        <span class="text-[10px] font-bold uppercase bg-japem-bg text-japem-green px-2 py-0.5 rounded-full">{{ user.get_role_display }}</span>
+      </div>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <div>
+        <label class="block text-xs font-bold text-japem-dark uppercase mb-1">{{ profile_form.name.label }}</label>
+        {{ profile_form.name }}
+      </div>
+      <div>
+        <label class="block text-xs font-bold text-japem-dark uppercase mb-1">{{ profile_form.email.label }}</label>
+        {{ profile_form.email }}
+      </div>
+    </div>
+
+    <div class="pt-4 border-t border-japem-bg">
+      <h3 class="text-sm font-bold text-japem-dark mb-3">Seguridad</h3>
+      {% if password_form.non_field_errors %}
+      <p class="text-red-500 text-xs mb-3">{{ password_form.non_field_errors.0 }}</p>
+      {% endif %}
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div>
+          <label class="block text-xs font-bold text-japem-dark uppercase mb-1">{{ password_form.current_password.label }}</label>
+          {{ password_form.current_password }}
+        </div>
+        <div>
+          <label class="block text-xs font-bold text-japem-dark uppercase mb-1">{{ password_form.new_password.label }}</label>
+          {{ password_form.new_password }}
+        </div>
+      </div>
+    </div>
+
+    <div class="flex justify-end pt-2">
+      <button type="submit" class="px-8 py-3 bg-japem-green hover:bg-japem-greendark text-white font-bold rounded-xl shadow transition">Guardar Cambios</button>
+    </div>
+  </form>
+</div>
+{% endblock %}

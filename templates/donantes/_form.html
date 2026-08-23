@@ -1,0 +1,25 @@
+<div class="p-6">
+  <h2 class="text-xl font-bold text-japem-dark mb-4">
+    {% if donante %}Editar Donante{% else %}Nuevo Donante{% endif %}
+  </h2>
+  <form
+    hx-post="{% if donante %}{% url 'donantes:update' donante.pk %}{% else %}{% url 'donantes:create' %}{% endif %}"
+    hx-target="#donantes-table"
+    hx-swap="outerHTML"
+  >
+    {% csrf_token %}
+    <div class="grid grid-cols-2 gap-4">
+      {% for field in form %}
+      <div class="{% if field.name == 'direccion' %}col-span-2{% endif %}">
+        <label class="block text-xs font-bold text-japem-dark uppercase tracking-wide mb-1">{{ field.label }}</label>
+        {{ field }}
+        {% if field.errors %}<p class="text-red-500 text-xs mt-1">{{ field.errors.0 }}</p>{% endif %}
+      </div>
+      {% endfor %}
+    </div>
+    <div class="flex justify-end gap-3 pt-6">
+      <button type="button" @click="modalOpen = false" class="px-4 py-2 rounded-xl text-japem-dark hover:bg-japem-bg transition">Cancelar</button>
+      <button type="submit" class="px-4 py-2 rounded-xl bg-japem-green hover:bg-japem-greendark text-white font-bold transition">Guardar</button>
+    </div>
+  </form>
+</div>
