@@ -2,6 +2,85 @@
   display: none !important;
 }
 
-body {
-  font-family: "Inter", ui-sans-serif, system-ui, sans-serif;
+:root {
+  font-family: 'Inter', system-ui, Avenir, Helvetica, Arial, sans-serif;
+}
+
+/* Igual que el original: sin scroll horizontal y barra vertical oculta */
+html, body {
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  max-width: 100%;
+  min-height: 100vh;
+  background-color: #f3f4f6;
+  overflow-x: hidden;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+body::-webkit-scrollbar {
+  display: none;
+}
+
+/* === Animaciones del Proyecto Siace === */
+.glass-effect {
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(10px);
+}
+
+@keyframes slideIn {
+  from { opacity: 0; transform: translateY(50px) scale(0.95); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+.animate-slide-in {
+  animation: slideIn 0.8s ease-out forwards;
+}
+
+.hover-lift {
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+.hover-lift:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+}
+
+.form-field {
+  opacity: 0;
+  animation: fadeInUp 0.6s ease-out forwards;
+}
+.delay-1 { animation-delay: 0.1s; }
+.delay-2 { animation-delay: 0.2s; }
+.delay-3 { animation-delay: 0.3s; }
+
+@keyframes fadeInUp {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.swal2-container {
+  z-index: 99999 !important;
+}
+
+@keyframes modalIn {
+  from { opacity: 0; transform: translateY(2rem) scale(0.95); }
+  to   { opacity: 1; transform: translateY(0) scale(1); }
+}
+.animate-modal-in {
+  animation: modalIn 0.3s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+#modal-content:empty::after {
+  content: "";
+  width: 2.5rem;
+  height: 2.5rem;
+  border-radius: 9999px;
+  border: 3px solid rgba(255, 255, 255, 0.9);
+  border-bottom-color: transparent;
+  animation: modalSpin 1s linear infinite;
+}
+@keyframes modalSpin { to { transform: rotate(360deg); } }
+
+.swal2-popup {
+  font-family: 'Inter', system-ui, sans-serif !important;
+  border-radius: 1rem !important;
 }

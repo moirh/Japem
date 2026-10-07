@@ -1,0 +1,186 @@
+{% extends "_modal.html" %}
+
+{% block size %}max-w-7xl{% endblock %}
+
+{% block title %}Registrar Entrada{% endblock %}
+
+{% block icon %}<svg class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 14h2a2 2 0 1 0 0-4h-3c-.6 0-1.1.2-1.4.6L3 16"/><path d="m7 20 1.6-1.4c.3-.4.8-.6 1.4-.6h4c1.1 0 2.1-.4 2.8-1.2l4.6-4.4a2 2 0 0 0-2.75-2.91l-4.2 3.9"/><path d="m2 15 6 6"/><path d="M19.5 8.5c.7-.7 1.5-1.6 1.5-2.7A2.73 2.73 0 0 0 16 4a2.78 2.78 0 0 0-5 1.8c0 1.2.8 2 1.5 2.8L16 12Z"/></svg>{% endblock %}
+
+{% block body %}
+{# Registrar Entrada — modal migrado de DonativosTable.tsx #}
+<form id="form-entrada"
+      hx-post="{% url 'donativos:crear' %}"
+      hx-target="#donativos-table"
+      hx-swap="outerHTML"
+      class="space-y-8 p-1"
+      data-success-title="¡Entrada Registrada!"
+      data-success-text="El donativo se guardó correctamente.">
+  {{ formset.management_form }}
+
+  {% if error_general or form.non_field_errors or formset.non_form_errors %}
+  <div class="p-4 bg-red-50 border border-red-100 text-red-600 rounded-xl text-sm font-medium">
+    {{ error_general|default:"" }}{{ form.non_field_errors }}{{ formset.non_form_errors }}
+  </div>
+  {% endif %}
+
+  {# ---------- INFORMACIÓN DEL DONANTE ---------- #}
+  <div class="bg-[#f2f5f0] p-6 rounded-2xl border border-[#c0c6b6]">
+    <h3 class="text-sm font-extrabold text-[#719c44] uppercase tracking-wide flex items-center gap-2 mb-4">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+      Información del Donante
+    </h3>
+    <div class="grid grid-cols-1 md:grid-cols-12 gap-6 [&_input]:p-3 [&_input]:rounded-xl [&_select]:p-3 [&_select]:rounded-xl">
+      <div class="md:col-span-5 space-y-1.5">
+        <label class="text-sm font-bold text-[#353131]">Seleccionar Donante *</label>
+        {{ form.donante }}
+        {% if form.donante.errors %}<p class="text-red-500 text-xs mt-1">{{ form.donante.errors.0 }}</p>{% endif %}
+      </div>
+      <div class="md:col-span-3 space-y-1.5">
+        <label class="text-sm font-bold text-[#353131]">Fecha Recepción *</label>
+        {{ form.fecha_donativo }}
+        {% if form.fecha_donativo.errors %}<p class="text-red-500 text-xs mt-1">{{ form.fecha_donativo.errors.0 }}</p>{% endif %}
+      </div>
+      <div class="md:col-span-4 space-y-1.5">
+        <label class="text-sm font-bold text-[#353131]">Notas / Observaciones</label>
+        {{ form.observaciones }}
+      </div>
+    </div>
+  </div>
+
+  {# ---------- INVENTARIO A INGRESAR ---------- #}
+  <div class="space-y-4">
+    <div class="flex justify-between items-center">
+      <h3 class="text-sm font-extrabold text-[#817e7e] uppercase tracking-wide flex items-center gap-2">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m7.5 4.27 9 5.15"/><path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"/><path d="m3.3 7 8.7 5 8.7-5"/><path d="M12 22V12"/></svg>
+        Inventario a Ingresar
+      </h3>
+      <button type="button" id="add-detalle"
+              class="cursor-pointer flex items-center gap-2 bg-[#f2f5f0] hover:bg-[#c0c6b6] text-[#353131] px-5 py-2 rounded-xl transition-all font-bold text-sm hover:scale-105 active:scale-95 border border-[#c0c6b6]">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="M12 5v14"/></svg>
+        Agregar Fila
+      </button>
+    </div>
+
+    <div id="detalle-rows">
+      {% for detalle_form in formset %}
+        {% include "donativos/_detalle_row.html" with form=detalle_form %}
+      {% endfor %}
+    </div>
+  </div>
+
+  <template id="empty-form-template">
+    {% include "donativos/_detalle_row.html" with form=formset.empty_form %}
+  </template>
+
+  {# ---------- BOTONES ---------- #}
+  <div class="sticky bottom-0 bg-white pt-4 border-t border-[#c0c6b6]/30 flex justify-end gap-3 z-20">
+    {% csrf_token %}
+    <button type="button" @click="modalOpen = false"
+            class="cursor-pointer px-6 py-3 text-[#817e7e] bg-[#f9fafb] hover:bg-[#f2f5f0] rounded-xl font-bold transition-colors">
+      Cancelar
+    </button>
+    <button type="submit"
+            class="cursor-pointer px-8 py-3 bg-[#719c44] hover:bg-[#5e8239] text-white font-bold rounded-xl shadow-lg shadow-[#719c44]/30 transition-transform transform active:scale-95 flex items-center gap-2">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21.801 10A10 10 0 1 1 17 3.335"/><path d="m9 11 3 3L22 4"/></svg>
+      Guardar Entrada
+    </button>
+  </div>
+</form>
+
+<datalist id="catalogo-productos">
+  {% for producto in catalogo %}
+  <option value="{{ producto.nombre }}" data-clave-sat="{{ producto.clave_sat|default:'' }}" data-categoria="{{ producto.categoria|default:'' }}" data-unidad="{{ producto.unidad_medida|default:'' }}"></option>
+  {% endfor %}
+</datalist>
+
+<script>
+  (function () {
+    const container = document.getElementById("detalle-rows");
+    const totalForms = document.getElementById("id_form-TOTAL_FORMS");
+    const addBtn = document.getElementById("add-detalle");
+    const template = document.getElementById("empty-form-template");
+
+    // Igual que needsExpiration() del original
+    function necesitaCaducidad(categoria) {
+      const cat = (categoria || "").toUpperCase();
+      return cat.includes("ALIMENT") || cat.includes("MEDICAMENT") ||
+             cat.includes("FARMACIA") || cat.includes("PERECEDERO");
+    }
+
+    function actualizarCaducidad(row) {
+      const categoria = row.querySelector(".categoria-input");
+      const wrap = row.querySelector(".caducidad-wrap");
+      if (!categoria || !wrap) return;
+      const mostrar = necesitaCaducidad(categoria.value);
+      wrap.classList.toggle("hidden", !mostrar);
+      wrap.classList.toggle("md:block", !mostrar);
+      wrap.classList.toggle("md:invisible", !mostrar);
+      if (!mostrar) {
+        const fecha = wrap.querySelector("input");
+        if (fecha) fecha.value = "";
+      }
+    }
+
+    function reindex() {
+      const rows = container.querySelectorAll(".detalle-row");
+      rows.forEach((row, i) => {
+        row.querySelectorAll("[name], [id], label[for]").forEach((el) => {
+          ["name", "id", "for"].forEach((attr) => {
+            const val = el.getAttribute(attr);
+            if (!val) return;
+            if (val.includes("form-__prefix__")) {
+              el.setAttribute(attr, val.replace("form-__prefix__", `form-${i}`));
+            } else if (/form-\d+/.test(val)) {
+              el.setAttribute(attr, val.replace(/form-\d+/, `form-${i}`));
+            }
+          });
+        });
+      });
+      totalForms.value = rows.length;
+    }
+
+    addBtn.addEventListener("click", () => {
+      container.appendChild(template.content.cloneNode(true));
+      reindex();
+      const nueva = container.lastElementChild;
+      actualizarCaducidad(nueva);
+      nueva.scrollIntoView({ behavior: "smooth", block: "center" });
+    });
+
+    container.addEventListener("click", (e) => {
+      const btn = e.target.closest(".remove-detalle");
+      if (!btn) return;
+      if (container.querySelectorAll(".detalle-row").length > 1) {
+        btn.closest(".detalle-row").remove();
+        reindex();
+      }
+    });
+
+    container.addEventListener("change", (e) => {
+      const row = e.target.closest(".detalle-row");
+      if (!row) return;
+
+      if (e.target.classList.contains("categoria-input")) {
+        actualizarCaducidad(row);
+        return;
+      }
+
+      if (!e.target.classList.contains("nombre-producto-input")) return;
+      const opt = document.querySelector(
+        `#catalogo-productos option[value="${CSS.escape(e.target.value)}"]`
+      );
+      if (!opt) return;
+      const claveSat = row.querySelector(".clave-sat-input");
+      const categoria = row.querySelector(".categoria-input");
+      const unidad = row.querySelector(".unidad-input");
+      if (claveSat && opt.dataset.claveSat) claveSat.value = opt.dataset.claveSat;
+      if (categoria && opt.dataset.categoria) categoria.value = opt.dataset.categoria;
+      if (unidad && opt.dataset.unidad) unidad.value = opt.dataset.unidad;
+      actualizarCaducidad(row);
+    });
+
+    // Al abrir (o al volver con errores) muestra la caducidad donde aplica
+    container.querySelectorAll(".detalle-row").forEach(actualizarCaducidad);
+  })();
+</script>
+{% endblock %}

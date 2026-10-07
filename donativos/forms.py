@@ -5,8 +5,8 @@ from django import forms
 from donantes.models import Donante
 
 INPUT_CLASSES = (
-    "w-full px-3 py-2.5 bg-gray-50 border-2 border-gray-200 rounded-xl "
-    "text-japem-dark focus:outline-none focus:bg-white focus:border-japem-green transition"
+    "w-full p-2.5 border border-[#c0c6b6] rounded-lg text-sm bg-white text-[#353131] "
+    "focus:ring-2 focus:ring-[#719c44] outline-none transition-all"
 )
 
 CATEGORIA_CHOICES = [("", "-- Seleccionar --")] + [
@@ -53,7 +53,7 @@ class DonativoForm(forms.Form):
     )
     fecha_donativo = forms.DateField(
         label="Fecha Recepción",
-        widget=forms.DateInput(attrs=_widget(type="date")),
+        widget=forms.DateInput(attrs=_widget(type="date"), format="%Y-%m-%d"),
     )
     observaciones = forms.CharField(
         label="Notas / Observaciones",
@@ -94,7 +94,7 @@ class DetalleForm(forms.Form):
     fecha_caducidad = forms.DateField(
         label="Caducidad",
         required=False,
-        widget=forms.DateInput(attrs=_widget(type="date")),
+        widget=forms.DateInput(attrs=_widget(type="date"), format="%Y-%m-%d"),
     )
     modalidad = forms.ChoiceField(
         label="Modalidad",

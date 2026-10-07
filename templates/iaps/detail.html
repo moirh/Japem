@@ -3,7 +3,7 @@
 {% block title %}{{ iap.nombre_iap }} · JAPEM{% endblock %}
 
 {% block content %}
-<div class="max-w-4xl mx-auto px-6 py-8">
+<div class="w-full px-4 sm:px-6 py-6">
   <div class="flex items-center justify-between mb-6">
     <h1 class="text-2xl font-bold text-japem-dark">{{ iap.nombre_iap }}</h1>
     <a href="{% url 'iaps:list' %}" class="text-japem-green hover:underline font-medium">&larr; Volver al padrón</a>

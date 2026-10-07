@@ -1,46 +1,86 @@
+{# Calendario — diseño migrado de components/ui/Calendar.tsx #}
 {{ calendar_events|json_script:"calendar-events-data" }}
-<div x-data="calendarWidget()" class="bg-white rounded-2xl p-4 border border-japem-accent/30 h-full">
-  <div class="flex items-center justify-between mb-4">
-    <h3 class="text-base font-bold capitalize text-japem-dark" x-text="monthLabel"></h3>
+<div x-data="calendarWidget()" @click.outside="cerrar()"
+     class="relative bg-white rounded-2xl shadow-sm border border-[#c0c6b6]/30 p-5 w-full h-full flex flex-col">
+
+  {# Encabezado #}
+  <div class="flex items-center justify-between mb-6">
+    <h3 class="text-lg font-bold capitalize text-[#353131] flex items-center gap-2">
+      <span class="bg-[#f2f5f0] text-[#719c44] p-1.5 rounded-lg border border-[#c0c6b6]/30">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="4" rx="2"/><line x1="16" x2="16" y1="2" y2="6"/><line x1="8" x2="8" y1="2" y2="6"/><line x1="3" x2="21" y1="10" y2="10"/></svg>
+      </span>
+      <span x-text="monthName"></span> <span class="text-[#817e7e] font-normal" x-text="year"></span>
+    </h3>
     <div class="flex gap-1">
-      <button type="button" @click="prevMonth()" class="p-1.5 rounded-lg hover:bg-japem-bg text-japem-muted hover:text-japem-green transition">&#8592;</button>
-      <button type="button" @click="nextMonth()" class="p-1.5 rounded-lg hover:bg-japem-bg text-japem-muted hover:text-japem-green transition">&#8594;</button>
+      <button type="button" @click="prevMonth()" class="cursor-pointer p-1.5 rounded-lg hover:bg-[#f2f5f0] text-[#817e7e] hover:text-[#719c44] transition-colors">
+        <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg>
+      </button>
+      <button type="button" @click="nextMonth()" class="cursor-pointer p-1.5 rounded-lg hover:bg-[#f2f5f0] text-[#817e7e] hover:text-[#719c44] transition-colors">
+        <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg>
+      </button>
     </div>
   </div>
 
-  <div class="grid grid-cols-7 mb-1 text-center text-[10px] font-bold text-japem-accent uppercase">
-    <div>D</div><div>L</div><div>M</div><div>M</div><div>J</div><div>V</div><div>S</div>
-  </div>
-
-  <div class="grid grid-cols-7 gap-1">
-    <template x-for="n in leadingBlanks" :key="'blank-' + n"><div></div></template>
-    <template x-for="day in daysInMonth" :key="day">
-      <button
-        type="button"
-        @click="selectDay(day)"
-        class="aspect-square rounded-lg text-xs font-bold flex flex-col items-center justify-center transition"
-        :class="dayClasses(day)"
-      >
-        <span x-text="day"></span>
-        <div class="flex gap-0.5 mt-0.5 h-1">
-          <span x-show="hasType(day, 'acuerdo')" class="w-1 h-1 rounded-full" :class="isToday(day) ? 'bg-white' : 'bg-japem-green'"></span>
-          <span x-show="hasType(day, 'recordatorio')" class="w-1 h-1 rounded-full bg-orange-500"></span>
-        </div>
-      </button>
+  {# Días de la semana #}
+  <div class="grid grid-cols-7 mb-2">
+    <template x-for="(d, i) in ['D','L','M','M','J','V','S']" :key="i">
+      <div class="text-center text-xs font-bold text-[#c0c6b6] uppercase tracking-wide py-1" x-text="d"></div>
     </template>
   </div>
 
-  <div x-show="selectedDay" x-cloak class="mt-3 border-t border-japem-bg pt-3">
-    <p class="text-xs font-bold text-japem-dark mb-2">
-      Eventos del <span x-text="selectedDay"></span> de <span class="lowercase" x-text="monthLabel"></span>
-    </p>
-    <template x-for="evt in selectedEvents" :key="evt.title + evt.date">
-      <div class="text-xs p-2 rounded-lg mb-1" :class="evt.type === 'acuerdo' ? 'bg-japem-bg text-japem-green' : 'bg-orange-50 text-orange-700'">
-        <span class="font-bold uppercase text-[9px]" x-text="evt.type"></span>
-        <div x-text="evt.title"></div>
+  {# Días del mes #}
+  <div class="grid grid-cols-7 gap-1 lg:gap-2 flex-1 relative">
+    <template x-for="n in leadingBlanks" :key="'blank-' + n"><div></div></template>
+    <template x-for="day in daysInMonth" :key="year + '-' + month + '-' + day">
+      <div @click="selectDay(day)"
+           class="relative aspect-square flex flex-col items-center justify-center rounded-xl text-sm font-bold cursor-pointer transition-all duration-200"
+           :class="isToday(day) ? 'bg-[#719c44] text-white shadow-lg shadow-[#719c44]/20 scale-105 z-10'
+                  : (selectedDay === day ? 'bg-[#f2f5f0] text-[#719c44] ring-2 ring-[#719c44] ring-inset' : 'hover:bg-[#f2f5f0] text-[#353131]')">
+        <span x-text="day"></span>
+        <div class="flex gap-0.5 mt-1 h-1.5">
+          <span x-show="hasType(day, 'acuerdo')" class="w-1.5 h-1.5 rounded-full" :class="isToday(day) ? 'bg-white' : 'bg-[#719c44]'"></span>
+          <span x-show="hasType(day, 'recordatorio')" class="w-1.5 h-1.5 rounded-full" :class="isToday(day) ? 'bg-white' : 'bg-orange-500'"></span>
+        </div>
       </div>
     </template>
-    <p x-show="selectedEvents.length === 0" class="text-xs text-japem-muted">Sin eventos programados.</p>
+
+    {# Tooltip flotante con los eventos del día #}
+    <div x-show="selectedDay" x-cloak x-transition.scale.95
+         class="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-64 max-w-full z-20">
+      <div class="bg-white/95 backdrop-blur-md border border-[#c0c6b6]/50 rounded-2xl shadow-2xl overflow-hidden ring-1 ring-black/5">
+        <div class="bg-[#f2f5f0] px-4 py-3 border-b border-[#c0c6b6]/30 flex justify-between items-center">
+          <h4 class="text-sm font-bold text-[#353131]">
+            <span x-text="selectedDay"></span> de <span class="capitalize" x-text="monthName"></span>
+          </h4>
+          <button type="button" @click="cerrar()" class="cursor-pointer text-[#c0c6b6] hover:text-red-500 transition">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+          </button>
+        </div>
+        <div class="max-h-48 overflow-y-auto p-2">
+          <div x-show="selectedEvents.length > 0" class="space-y-2">
+            <template x-for="(evt, idx) in selectedEvents" :key="idx">
+              <div class="p-2.5 rounded-xl border flex items-start gap-2.5"
+                   :class="evt.type === 'acuerdo' ? 'bg-[#f2f5f0] border-[#c0c6b6]/30' : 'bg-orange-50 border-orange-100'">
+                <div class="mt-0.5" :class="evt.type === 'acuerdo' ? 'text-[#719c44]' : 'text-orange-500'">
+                  <svg x-show="evt.type === 'acuerdo'" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m11 17 2 2a1 1 0 1 0 3-3"/><path d="m14 14 2.5 2.5a1 1 0 1 0 3-3l-3.88-3.88a3 3 0 0 0-4.24 0l-.88.88a1 1 0 1 1-3-3l2.81-2.81a5.79 5.79 0 0 1 7.06-.87l.47.28a2 2 0 0 0 1.42.25L21 4"/><path d="m21 3 1 11h-2"/><path d="M3 3 2 14l6.5 6.5a1 1 0 1 0 3-3"/><path d="M3 4h8"/></svg>
+                  <svg x-show="evt.type !== 'acuerdo'" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.268 21a2 2 0 0 0 3.464 0"/><path d="M3.262 15.326A1 1 0 0 0 4 17h16a1 1 0 0 0 .74-1.673C19.41 13.956 18 12.499 18 8A6 6 0 0 0 6 8c0 4.499-1.411 5.956-2.738 7.326"/></svg>
+                </div>
+                <div class="min-w-0 flex-1">
+                  <p class="text-[10px] font-bold uppercase tracking-wider"
+                     :class="evt.type === 'acuerdo' ? 'text-[#719c44]' : 'text-orange-800'"
+                     x-text="evt.type === 'acuerdo' ? 'Acuerdo' : 'Recordatorio'"></p>
+                  <p class="text-xs text-[#353131] font-medium leading-snug break-words" x-text="evt.title"></p>
+                </div>
+              </div>
+            </template>
+          </div>
+          <div x-show="selectedEvents.length === 0" class="py-6 text-center text-[#c0c6b6] flex flex-col items-center">
+            <svg class="mb-2 opacity-20" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="4" rx="2"/><line x1="16" x2="16" y1="2" y2="6"/><line x1="8" x2="8" y1="2" y2="6"/><line x1="3" x2="21" y1="10" y2="10"/></svg>
+            <p class="text-xs font-medium">Sin eventos programados</p>
+          </div>
+        </div>
+      </div>
+    </div>
   </div>
 </div>
 
@@ -52,9 +92,7 @@
       selectedDay: null,
       get year() { return this.current.getFullYear(); },
       get month() { return this.current.getMonth(); },
-      get monthLabel() {
-        return this.current.toLocaleDateString("es-MX", { month: "long", year: "numeric" });
-      },
+      get monthName() { return this.current.toLocaleString("es-MX", { month: "long" }); },
       get daysInMonth() { return new Date(this.year, this.month + 1, 0).getDate(); },
       get leadingBlanks() { return new Date(this.year, this.month, 1).getDay(); },
       get selectedEvents() {
@@ -75,14 +113,10 @@
         const t = new Date();
         return t.getFullYear() === this.year && t.getMonth() === this.month && t.getDate() === day;
       },
-      dayClasses(day) {
-        if (this.isToday(day)) return "bg-japem-green text-white";
-        if (this.selectedDay === day) return "bg-japem-bg text-japem-green ring-2 ring-japem-green";
-        return "hover:bg-japem-bg text-japem-dark";
-      },
       prevMonth() { this.current = new Date(this.year, this.month - 1, 1); this.selectedDay = null; },
       nextMonth() { this.current = new Date(this.year, this.month + 1, 1); this.selectedDay = null; },
       selectDay(day) { this.selectedDay = this.selectedDay === day ? null : day; },
+      cerrar() { this.selectedDay = null; },
     };
   }
 </script>

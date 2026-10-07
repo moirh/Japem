@@ -1,48 +1,77 @@
-<div id="donantes-table" class="bg-white rounded-2xl shadow overflow-hidden">
-  <table class="w-full text-sm">
-    <thead class="bg-japem-bg text-japem-dark text-left">
-      <tr>
-        <th class="px-4 py-3">Razón Social</th>
-        <th class="px-4 py-3">RFC</th>
-        <th class="px-4 py-3">Contacto</th>
-        <th class="px-4 py-3">Teléfono</th>
-        <th class="px-4 py-3">Estatus</th>
-        <th class="px-4 py-3"></th>
-      </tr>
-    </thead>
-    <tbody>
-      {% for donante in donantes %}
-      <tr class="border-t border-japem-accent/20">
-        <td class="px-4 py-3 font-medium text-japem-dark">{{ donante.razon_social }}</td>
-        <td class="px-4 py-3 text-japem-muted">{{ donante.rfc|default:"—" }}</td>
-        <td class="px-4 py-3">{{ donante.contacto }}</td>
-        <td class="px-4 py-3">{{ donante.telefono|default:"—" }}</td>
-        <td class="px-4 py-3">
-          <span class="px-2 py-1 rounded-full text-xs font-bold bg-japem-green/10 text-japem-green">{{ donante.estatus }}</span>
-        </td>
-        <td class="px-4 py-3 text-right space-x-3 whitespace-nowrap">
-          {% if can_edit %}
-          <button
-            @click="modalOpen = true"
-            hx-get="{% url 'donantes:update' donante.pk %}"
-            hx-target="#modal-content"
-            class="text-japem-green hover:underline font-medium"
-          >Editar</button>
-          <button
-            hx-post="{% url 'donantes:delete' donante.pk %}"
-            hx-target="#donantes-table"
-            hx-swap="outerHTML"
-            hx-confirm="¿Eliminar este donante?"
-            class="text-red-500 hover:underline font-medium"
-          >Eliminar</button>
-          {% else %}
-          <span class="text-xs text-japem-muted italic">Solo lectura</span>
-          {% endif %}
-        </td>
-      </tr>
-      {% empty %}
-      <tr><td colspan="6" class="px-4 py-8 text-center text-japem-muted">No hay donantes registrados.</td></tr>
-      {% endfor %}
-    </tbody>
-  </table>
+{# Tabla de Donantes — diseño migrado de DonantesTable.tsx + components/ui/Table.tsx #}
+<div id="donantes-table"
+     class="bg-white rounded-xl shadow-xl shadow-[#c0c6b6]/20 border border-[#c0c6b6]/30 overflow-hidden"
+     x-data="{ q: '', n: {{ donantes|length }} }">
+  <div class="w-full">
+
+    {# Buscador #}
+    <div class="mb-4">
+      <input type="text" placeholder="Buscar..." x-model="q"
+             @input="$nextTick(() => n = [...$refs.rows.querySelectorAll('tr[data-row]')].filter(r => r.style.display !== 'none').length)"
+             class="w-full md:w-1/3 px-4 py-2 bg-gray-100 text-gray-900 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-gray-400 placeholder-gray-500 transition">
+    </div>
+
+    <div class="overflow-x-auto rounded-2xl border border-gray-200 shadow-sm bg-white">
+      <table class="min-w-full border-separate border-spacing-0">
+        <thead>
+          <tr class="bg-gray-50">
+            <th class="px-6 py-4 text-left text-sm font-semibold text-gray-700 border-b border-gray-200 tracking-wide whitespace-nowrap">Razón Social</th>
+            <th class="px-6 py-4 text-left text-sm font-semibold text-gray-700 border-b border-gray-200 tracking-wide whitespace-nowrap">RFC</th>
+            <th class="px-6 py-4 text-left text-sm font-semibold text-gray-700 border-b border-gray-200 tracking-wide whitespace-nowrap">Contacto</th>
+            <th class="px-6 py-4 text-left text-sm font-semibold text-gray-700 border-b border-gray-200 tracking-wide whitespace-nowrap">Teléfono</th>
+            <th class="px-6 py-4 text-left text-sm font-semibold text-gray-700 border-b border-gray-200 tracking-wide whitespace-nowrap">Estatus</th>
+            {% if can_edit %}
+            <th class="px-6 py-4 text-left text-sm font-semibold text-gray-700 border-b border-gray-200 tracking-wide whitespace-nowrap">Acciones</th>
+            {% endif %}
+          </tr>
+        </thead>
+        <tbody x-ref="rows">
+          {% for donante in donantes %}
+          <tr data-row x-show="!q || $el.textContent.toLowerCase().includes(q.toLowerCase())"
+              class="group transition-all duration-200 hover:bg-gray-50/70 hover:shadow-sm">
+            <td class="px-6 py-4 text-gray-800 border-b border-gray-100 text-sm">{{ donante.razon_social }}</td>
+            <td class="px-6 py-4 text-gray-800 border-b border-gray-100 text-sm">{{ donante.rfc|default:"" }}</td>
+            <td class="px-6 py-4 text-gray-800 border-b border-gray-100 text-sm">{{ donante.contacto }}</td>
+            <td class="px-6 py-4 text-gray-800 border-b border-gray-100 text-sm">{{ donante.telefono|default:"" }}</td>
+            <td class="px-6 py-4 text-gray-800 border-b border-gray-100 text-sm">
+              <span class="px-2 py-1 rounded-full text-xs font-bold uppercase
+                {% if donante.estatus == 'Permanente' %}bg-[#f2f5f0] text-[#719c44]{% elif donante.estatus == 'Eventual' %}bg-[#ffedcc] text-[#d97706]{% else %}bg-[#e0f2fe] text-[#0284c7]{% endif %}">
+                {{ donante.estatus }}
+              </span>
+            </td>
+            {% if can_edit %}
+            <td class="px-6 py-4 text-gray-800 border-b border-gray-100 text-sm">
+              <div class="flex gap-2 justify-center">
+                <button type="button" title="Editar"
+                        @click="modalOpen = true"
+                        hx-get="{% url 'donantes:update' donante.pk %}"
+                        hx-target="#modal-content"
+                        class="cursor-pointer p-1.5 text-[#817e7e] hover:bg-[#f2f5f0] hover:text-[#719c44] rounded-md transition transform hover:scale-110">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.375 2.625a1 1 0 0 1 3 3l-9.013 9.014a2 2 0 0 1-.853.505l-2.873.84a.5.5 0 0 1-.62-.62l.84-2.873a2 2 0 0 1 .506-.852z"/></svg>
+                </button>
+                <button type="button" title="Eliminar"
+                        hx-post="{% url 'donantes:delete' donante.pk %}"
+                        hx-target="#donantes-table"
+                        hx-swap="outerHTML"
+                        hx-confirm="Se eliminará este donante del directorio permanentemente."
+                          data-success-title="¡Eliminado!"
+                          data-success-text="El registro ha sido eliminado."
+                        class="cursor-pointer p-1.5 text-[#817e7e] hover:bg-red-50 hover:text-red-500 rounded-md transition transform hover:scale-110">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/><line x1="10" x2="10" y1="11" y2="17"/><line x1="14" x2="14" y1="11" y2="17"/></svg>
+                </button>
+              </div>
+            </td>
+            {% endif %}
+          </tr>
+          {% empty %}
+          <tr><td colspan="{% if can_edit %}6{% else %}5{% endif %}" class="px-6 py-8 text-center text-sm text-gray-500 border-b border-gray-100">No hay donantes registrados.</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+
+    <div class="flex justify-between items-center mt-6 px-2 pb-4">
+      <span class="text-sm text-gray-600 tracking-wide">Mostrando <span x-text="n"></span> registros</span>
+    </div>
+  </div>
 </div>

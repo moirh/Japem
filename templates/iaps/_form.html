@@ -1,95 +1,139 @@
-<div class="p-6 max-h-[85vh] overflow-y-auto">
-  <h2 class="text-xl font-bold text-japem-dark mb-4">
-    {% if iap %}Editar IAP{% else %}Registrar Nueva IAP{% endif %}
-  </h2>
-  <form
-    hx-post="{% if iap %}{% url 'iaps:update' iap.pk %}{% else %}{% url 'iaps:create' %}{% endif %}"
-    hx-target="#iaps-table"
-    hx-swap="outerHTML"
-    class="space-y-5"
-  >
-    {% csrf_token %}
+{% extends "_modal.html" %}
 
-    <div class="p-4 bg-japem-bg rounded-xl border border-japem-accent/40">
-      <h3 class="text-xs font-extrabold text-japem-green uppercase mb-3">Identidad y Estatus</h3>
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div class="md:col-span-2">
-          <label class="block text-xs font-bold text-japem-dark uppercase mb-1">{{ form.nombre_iap.label }}</label>
-          {{ form.nombre_iap }}
-          {% if form.nombre_iap.errors %}<p class="text-red-500 text-xs mt-1">{{ form.nombre_iap.errors.0 }}</p>{% endif %}
-        </div>
-        <div>
-          <label class="block text-xs font-bold text-japem-dark uppercase mb-1">{{ form.estatus.label }}</label>
-          {{ form.estatus }}
-        </div>
-        <div>
-          <label class="block text-xs font-bold text-japem-dark uppercase mb-1">{{ form.rubro.label }}</label>
-          {{ form.rubro }}
-        </div>
-        <div class="md:col-span-2">
-          <label class="block text-xs font-bold text-japem-dark uppercase mb-2">{{ form.clasificacion.label }}</label>
-          <div class="grid grid-cols-4 gap-2 bg-white p-3 border border-japem-accent rounded-xl max-h-32 overflow-y-auto">
-            {% for checkbox in form.clasificacion %}
-            <label class="flex items-center gap-1.5 cursor-pointer hover:bg-japem-bg rounded p-1 text-xs font-bold text-japem-dark">
-              {{ checkbox.tag }} {{ checkbox.choice_label }}
-            </label>
-            {% endfor %}
-          </div>
-        </div>
-      </div>
-    </div>
+{% block size %}max-w-7xl{% endblock %}
 
-    <div class="p-4 bg-gray-50 rounded-xl border border-gray-200">
-      <h3 class="text-xs font-extrabold text-japem-muted uppercase mb-3">Actividades específicas</h3>
-      <div class="bg-white p-3 border border-japem-accent rounded-xl max-h-40 overflow-y-auto space-y-1">
-        {% for checkbox in form.actividad_asistencial %}
-        <label class="flex items-start gap-2 cursor-pointer hover:bg-japem-bg p-1.5 rounded text-xs text-japem-dark">
-          {{ checkbox.tag }} <span class="leading-tight">{{ checkbox.choice_label }}</span>
-        </label>
-        {% endfor %}
-      </div>
-    </div>
+{% block title %}{% if iap %}Editar IAP{% else %}Registrar Nueva IAP{% endif %}{% endblock %}
 
-    <div class="p-4 bg-japem-bg rounded-xl border border-japem-accent/40">
-      <h3 class="text-xs font-extrabold text-japem-green uppercase mb-3">Población y Necesidades</h3>
-      <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
-        <div>
-          <label class="block text-xs font-bold text-japem-dark uppercase mb-1">{{ form.cantidad_fijos.label }}</label>
-          {{ form.cantidad_fijos }}
-        </div>
-        <div>
-          <label class="block text-xs font-bold text-japem-dark uppercase mb-1">{{ form.cantidad_temporales.label }}</label>
-          {{ form.cantidad_temporales }}
-        </div>
-        <div>
-          <label class="block text-xs font-bold text-japem-dark uppercase mb-1">{{ form.cantidad_flotantes.label }}</label>
-          {{ form.cantidad_flotantes }}
-        </div>
+{% block icon %}<svg class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 22V4a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v18Z"/><path d="M6 12H4a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h2"/><path d="M18 9h2a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2h-2"/><path d="M10 6h4"/><path d="M10 10h4"/><path d="M10 14h4"/><path d="M10 18h4"/></svg>{% endblock %}
+
+{% block body %}
+{# Formulario de IAP — secciones migradas de IapTable.tsx #}
+<form hx-post="{% if iap %}{% url 'iaps:update' iap.pk %}{% else %}{% url 'iaps:create' %}{% endif %}"
+      hx-target="#iaps-table"
+      hx-swap="outerHTML"
+      class="space-y-6 p-1"
+      data-success-title="{% if iap %}¡Actualizado!{% else %}¡Registrado!{% endif %}"
+      data-success-text="{% if iap %}La información de la IAP se actualizó correctamente.{% else %}La nueva IAP ha sido agregada al padrón.{% endif %}">
+
+  {# ---------- 1. IDENTIDAD Y ESTATUS ---------- #}
+  <div class="p-5 bg-[#f2f5f0] rounded-xl border border-[#c0c6b6]">
+    <h4 class="text-xs font-bold text-[#719c44] uppercase mb-4 flex items-center gap-2">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 22V4a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v18Z"/><path d="M6 12H4a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h2"/><path d="M18 9h2a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2h-2"/><path d="M10 6h4"/><path d="M10 10h4"/><path d="M10 14h4"/><path d="M10 18h4"/></svg>
+      Identidad y Estatus
+    </h4>
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+      <div class="md:col-span-2 [&_input]:uppercase">
+        <label class="text-xs font-bold text-[#353131] block mb-1">Nombre de la IAP *</label>
+        {{ form.nombre_iap }}
+        {% if form.nombre_iap.errors %}<p class="text-red-500 text-xs mt-1">{{ form.nombre_iap.errors.0 }}</p>{% endif %}
       </div>
       <div>
-        <label class="block text-xs font-bold text-japem-dark uppercase mb-1">{{ form.necesidad_complementaria.label }}</label>
-        {{ form.necesidad_complementaria }}
+        <label class="text-xs font-bold text-[#353131] block mb-1">Estatus *</label>
+        {{ form.estatus }}
+        {% if form.estatus.errors %}<p class="text-red-500 text-xs mt-1">{{ form.estatus.errors.0 }}</p>{% endif %}
+      </div>
+      <div>
+        <label class="text-xs font-bold text-[#353131] block mb-2">Clasificación (Múltiple)</label>
+        <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 bg-white p-3 border border-[#c0c6b6] rounded-xl max-h-32 overflow-y-auto">
+          {% for checkbox in form.clasificacion %}
+          <label class="flex items-center gap-1.5 cursor-pointer hover:bg-gray-50 rounded p-1 [&_input]:accent-[#719c44] [&_input]:w-4 [&_input]:h-4 [&_input]:cursor-pointer">
+            {{ checkbox.tag }}
+            <span class="text-xs text-[#555] font-bold">{{ checkbox.choice_label }}</span>
+          </label>
+          {% endfor %}
+        </div>
       </div>
     </div>
+  </div>
 
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
-      <label class="flex items-center gap-3 cursor-pointer p-3 border-2 border-gray-200 rounded-xl has-[:checked]:border-japem-green has-[:checked]:bg-japem-bg transition">
-        <span class="flex-1 text-sm font-bold text-japem-dark">Certificada</span>
-        {{ form.es_certificada }}
-      </label>
-      <label class="flex items-center gap-3 cursor-pointer p-3 border-2 border-gray-200 rounded-xl has-[:checked]:border-japem-green has-[:checked]:bg-japem-bg transition">
-        <span class="flex-1 text-sm font-bold text-japem-dark">Donataria</span>
-        {{ form.tiene_donataria_autorizada }}
-      </label>
-      <label class="flex items-center gap-3 cursor-pointer p-3 border-2 border-gray-200 rounded-xl has-[:checked]:border-japem-green has-[:checked]:bg-japem-bg transition">
-        <span class="flex-1 text-sm font-bold text-japem-dark">Padrón</span>
-        {{ form.tiene_padron_beneficiarios }}
-      </label>
+  {# ---------- 2. ACTIVIDAD ASISTENCIAL ---------- #}
+  <div class="p-5 bg-[#f9fafb] rounded-xl border border-[#e5e7eb]">
+    <h4 class="text-xs font-bold text-[#817e7e] uppercase mb-4 flex items-center gap-2">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
+      Actividad Asistencial
+    </h4>
+    <div class="grid grid-cols-1 gap-5">
+      <div>
+        <label class="text-xs font-bold text-[#353131] block mb-1">Rubro Principal</label>
+        {{ form.rubro }}
+        {% if form.rubro.errors %}<p class="text-red-500 text-xs mt-1">{{ form.rubro.errors.0 }}</p>{% endif %}
+      </div>
+      <div>
+        <label class="text-xs font-bold text-[#353131] block mb-2">Actividades Específicas (Múltiple)</label>
+        <div class="bg-white p-3 border border-[#c0c6b6] rounded-xl max-h-40 overflow-y-auto space-y-1">
+          {% for checkbox in form.actividad_asistencial %}
+          <label class="flex items-start gap-2 cursor-pointer hover:bg-gray-50 p-1.5 rounded transition-colors border-b border-gray-50 last:border-0 [&_input]:accent-[#719c44] [&_input]:w-4 [&_input]:h-4 [&_input]:mt-0.5 [&_input]:shrink-0 [&_input]:cursor-pointer">
+            {{ checkbox.tag }}
+            <span class="text-xs text-[#555] leading-tight select-none">{{ checkbox.choice_label }}</span>
+          </label>
+          {% endfor %}
+        </div>
+      </div>
     </div>
+  </div>
 
-    <div class="flex justify-end gap-3 pt-4 border-t border-japem-accent/30">
-      <button type="button" @click="modalOpen = false" class="px-4 py-2 rounded-xl text-japem-dark hover:bg-japem-bg transition">Cancelar</button>
-      <button type="submit" class="px-4 py-2 rounded-xl bg-japem-green hover:bg-japem-greendark text-white font-bold transition">Guardar</button>
+  {# ---------- 3. POBLACIÓN Y NECESIDADES ---------- #}
+  <div class="p-5 bg-[#f2f5f0] rounded-xl border border-[#c0c6b6]">
+    <h4 class="text-xs font-bold text-[#719c44] uppercase mb-4 flex items-center gap-2">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"/></svg>
+      Población y Necesidades
+    </h4>
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-5">
+      <div>
+        <label class="text-xs font-bold text-[#353131] block mb-1">Cant. Fijos</label>
+        {{ form.cantidad_fijos }}
+      </div>
+      <div>
+        <label class="text-xs font-bold text-[#353131] block mb-1">Cant. Temporales</label>
+        {{ form.cantidad_temporales }}
+      </div>
+      <div>
+        <label class="text-xs font-bold text-[#353131] block mb-1">Cant. Flotantes</label>
+        {{ form.cantidad_flotantes }}
+      </div>
     </div>
-  </form>
-</div>
+    <div class="[&_input]:uppercase">
+      <label class="text-xs font-bold text-[#353131] block mb-1">Necesidad Complementaria</label>
+      {{ form.necesidad_complementaria }}
+    </div>
+  </div>
+
+  {# ---------- 4. VALIDACIONES ---------- #}
+  <div class="grid grid-cols-1 md:grid-cols-3 gap-4 pt-2">
+    <label class="flex items-center gap-3 cursor-pointer p-4 border-2 border-transparent bg-white rounded-xl shadow-sm group has-[:checked]:border-[#719c44] has-[:checked]:bg-[#f2f5f0] [&_input]:w-5 [&_input]:h-5 [&_input]:accent-[#719c44]">
+      <div class="bg-yellow-100 p-2 rounded-full text-yellow-600">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m15.477 12.89 1.515 8.526a.5.5 0 0 1-.81.47l-3.58-2.687a1 1 0 0 0-1.197 0l-3.586 2.686a.5.5 0 0 1-.81-.469l1.514-8.526"/><circle cx="12" cy="8" r="6"/></svg>
+      </div>
+      <div class="flex-1"><span class="font-bold text-[#353131] text-sm">Certificada</span></div>
+      {{ form.es_certificada }}
+    </label>
+    <label class="flex items-center gap-3 cursor-pointer p-4 border-2 border-transparent bg-white rounded-xl shadow-sm group has-[:checked]:border-[#719c44] has-[:checked]:bg-[#f2f5f0] [&_input]:w-5 [&_input]:h-5 [&_input]:accent-[#719c44]">
+      <div class="bg-blue-100 p-2 rounded-full text-blue-600">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"/><path d="M14 2v4a2 2 0 0 0 2 2h4"/><path d="m9 15 2 2 4-4"/></svg>
+      </div>
+      <div class="flex-1"><span class="font-bold text-[#353131] text-sm">Donataria</span></div>
+      {{ form.tiene_donataria_autorizada }}
+    </label>
+    <label class="flex items-center gap-3 cursor-pointer p-4 border-2 border-transparent bg-white rounded-xl shadow-sm group has-[:checked]:border-[#719c44] has-[:checked]:bg-[#f2f5f0] [&_input]:w-5 [&_input]:h-5 [&_input]:accent-[#719c44]">
+      <div class="bg-green-100 p-2 rounded-full text-green-600">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+      </div>
+      <div class="flex-1"><span class="font-bold text-[#353131] text-sm">Padrón</span></div>
+      {{ form.tiene_padron_beneficiarios }}
+    </label>
+  </div>
+
+  <div class="flex justify-end gap-3 border-t pt-6 border-[#c0c6b6]/30">
+    {% csrf_token %}
+    <button type="button" @click="modalOpen = false"
+            class="cursor-pointer px-6 py-3 text-[#817e7e] font-bold hover:bg-[#f2f5f0] rounded-xl transition-all">
+      Cancelar
+    </button>
+    <button type="submit"
+            class="cursor-pointer px-8 py-3 bg-[#719c44] hover:bg-[#5e8239] text-white font-bold rounded-xl shadow-lg flex items-center gap-2 transition-all transform active:scale-95">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21.801 10A10 10 0 1 1 17 3.335"/><path d="m9 11 3 3L22 4"/></svg>
+      Guardar
+    </button>
+  </div>
+</form>
+{% endblock %}

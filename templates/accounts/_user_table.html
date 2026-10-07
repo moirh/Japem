@@ -1,5 +1,5 @@
-<div id="users-table" class="bg-white rounded-2xl shadow overflow-hidden">
-  <table class="w-full text-sm">
+<div id="users-table" class="bg-white rounded-2xl shadow overflow-x-auto">
+  <table class="w-full min-w-[640px] text-sm">
     <thead class="bg-japem-bg text-japem-dark text-left">
       <tr>
         <th class="px-4 py-3">Usuario</th>
@@ -29,7 +29,9 @@
             hx-post="{% url 'accounts:user_delete' u.pk %}"
             hx-target="#users-table"
             hx-swap="outerHTML"
-            hx-confirm="¿Eliminar este usuario?"
+            hx-confirm="Se eliminará este usuario permanentemente."
+              data-success-title="¡Eliminado!"
+              data-success-text="El usuario ha sido eliminado."
             class="text-red-500 hover:underline font-medium"
           >Eliminar</button>
           {% endif %}

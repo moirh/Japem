@@ -3,18 +3,51 @@
 {% block title %}Donantes · JAPEM{% endblock %}
 
 {% block content %}
-<div class="max-w-6xl mx-auto px-6 py-8">
-  <div class="flex justify-between items-center mb-6">
-    <h1 class="text-2xl font-bold text-japem-dark">Donantes</h1>
+{# Directorio de Donantes — diseño migrado de DonantesTable.tsx #}
+<div class="p-6 relative w-full max-w-full">
+
+  {# HEADER #}
+  <div class="relative flex flex-col lg:flex-row items-center justify-center gap-4 mb-8">
+    <div class="text-center">
+      <h1 class="text-xl sm:text-2xl font-bold text-[#353131] flex items-center justify-center gap-2">
+        <svg class="text-[#719c44]" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+        Directorio de Donantes
+      </h1>
+      <p class="text-[#817e7e] mt-1">Gestiona la información de empresas y particulares</p>
+    </div>
+
     {% if can_edit %}
-    <button
-      @click="modalOpen = true"
-      hx-get="{% url 'donantes:create' %}"
-      hx-target="#modal-content"
-      class="bg-japem-green hover:bg-japem-greendark text-white font-bold px-4 py-2 rounded-xl shadow transition"
-    >+ Nuevo Donante</button>
+    <div class="lg:absolute lg:right-0 lg:top-1/2 lg:-translate-y-1/2 flex items-center gap-3">
+      {# Descargar plantilla CSV #}
+      <a href="{% url 'donantes:plantilla' %}" title="Descargar plantilla CSV"
+         class="cursor-pointer bg-white border border-[#c0c6b6] text-[#817e7e] hover:text-[#719c44] hover:border-[#719c44] hover:bg-[#f2f5f0] p-2.5 rounded-xl flex items-center shadow-sm transition-all active:scale-95">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"/><path d="M14 2v4a2 2 0 0 0 2 2h4"/><path d="M12 18v-6"/><path d="m9 15 3 3 3-3"/></svg>
+      </a>
+
+      {# Importar CSV #}
+      <form method="post" action="{% url 'donantes:importar' %}" enctype="multipart/form-data">
+        {% csrf_token %}
+        <label title="Importar CSV"
+               class="cursor-pointer bg-white border border-[#719c44] text-[#719c44] hover:bg-[#f2f5f0] px-4 py-2.5 rounded-xl flex items-center gap-2 shadow-sm font-bold transition-all active:scale-95">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" x2="12" y1="3" y2="15"/></svg>
+          <span class="hidden sm:inline">Importar CSV</span>
+          <input type="file" name="archivo" accept=".csv" onchange="this.form.submit()" class="hidden">
+        </label>
+      </form>
+
+      {# Nuevo Donante #}
+      <button type="button"
+              @click="modalOpen = true"
+              hx-get="{% url 'donantes:create' %}"
+              hx-target="#modal-content"
+              class="cursor-pointer group bg-[#719c44] hover:bg-[#5e8239] text-white px-5 py-2.5 rounded-xl flex items-center gap-2 shadow-md hover:shadow-xl shadow-[#719c44]/30 font-bold transition-all duration-300 ease-out transform hover:scale-105 active:scale-95">
+        <svg class="transition-transform duration-500 group-hover:rotate-180" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="M12 5v14"/></svg>
+        <span class="hidden sm:inline">Nuevo Donante</span>
+      </button>
+    </div>
     {% endif %}
   </div>
+
   {% include "donantes/_table.html" %}
 </div>
 {% endblock %}

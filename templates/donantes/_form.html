@@ -1,25 +1,128 @@
-<div class="p-6">
-  <h2 class="text-xl font-bold text-japem-dark mb-4">
-    {% if donante %}Editar Donante{% else %}Nuevo Donante{% endif %}
-  </h2>
-  <form
-    hx-post="{% if donante %}{% url 'donantes:update' donante.pk %}{% else %}{% url 'donantes:create' %}{% endif %}"
-    hx-target="#donantes-table"
-    hx-swap="outerHTML"
-  >
-    {% csrf_token %}
-    <div class="grid grid-cols-2 gap-4">
-      {% for field in form %}
-      <div class="{% if field.name == 'direccion' %}col-span-2{% endif %}">
-        <label class="block text-xs font-bold text-japem-dark uppercase tracking-wide mb-1">{{ field.label }}</label>
-        {{ field }}
-        {% if field.errors %}<p class="text-red-500 text-xs mt-1">{{ field.errors.0 }}</p>{% endif %}
+{% extends "_modal.html" %}
+
+{% block size %}max-w-7xl{% endblock %}
+
+{% block title %}{% if donante %}Editar Donante{% else %}Registrar Nuevo Donante{% endif %}{% endblock %}
+
+{% block icon %}<svg class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>{% endblock %}
+
+{% block body %}
+{# Formulario de Donante — secciones migradas de DonantesTable.tsx #}
+<form hx-post="{% if donante %}{% url 'donantes:update' donante.pk %}{% else %}{% url 'donantes:create' %}{% endif %}"
+      hx-target="#donantes-table"
+      hx-swap="outerHTML"
+      class="space-y-6 p-1"
+      data-success-title="{% if donante %}¡Actualizado!{% else %}¡Registrado!{% endif %}"
+      data-success-text="{% if donante %}La información del donante se actualizó correctamente.{% else %}El nuevo donante ha sido agregado al directorio.{% endif %}">
+
+  {# ---------- SECCIÓN 1: DATOS FISCALES ---------- #}
+  <div class="p-5 bg-[#f2f5f0] rounded-xl border border-[#c0c6b6]">
+    <h4 class="text-xs font-bold text-[#817e7e] uppercase mb-4 flex items-center gap-2">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 22V4a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v18Z"/><path d="M6 12H4a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h2"/><path d="M18 9h2a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2h-2"/><path d="M10 6h4"/><path d="M10 10h4"/><path d="M10 14h4"/><path d="M10 18h4"/></svg>
+      Datos Fiscales
+    </h4>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+      <div class="[&_input]:uppercase">
+        <label class="block text-xs font-bold text-[#353131] mb-1">Razón Social / Nombre *</label>
+        {{ form.razon_social }}
+        {% if form.razon_social.errors %}<p class="text-red-500 text-xs mt-1">{{ form.razon_social.errors.0 }}</p>{% endif %}
       </div>
-      {% endfor %}
+      <div class="[&_input]:uppercase">
+        <label class="block text-xs font-bold text-[#353131] mb-1">RFC</label>
+        {{ form.rfc }}
+        {% if form.rfc.errors %}<p class="text-red-500 text-xs mt-1">{{ form.rfc.errors.0 }}</p>{% endif %}
+      </div>
     </div>
-    <div class="flex justify-end gap-3 pt-6">
-      <button type="button" @click="modalOpen = false" class="px-4 py-2 rounded-xl text-japem-dark hover:bg-japem-bg transition">Cancelar</button>
-      <button type="submit" class="px-4 py-2 rounded-xl bg-japem-green hover:bg-japem-greendark text-white font-bold transition">Guardar</button>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-5 mt-4">
+      <div>
+        <label class="block text-xs font-bold text-[#353131] mb-1">Régimen Fiscal</label>
+        <select name="{{ form.regimen_fiscal.html_name }}" id="{{ form.regimen_fiscal.id_for_label }}"
+                class="w-full px-4 py-2.5 border border-[#c0c6b6] rounded-lg text-sm bg-white focus:ring-4 focus:ring-[#719c44]/20 focus:border-[#719c44] outline-none transition-all text-[#353131]">
+          <option value="">-- Seleccionar --</option>
+          <option value="Persona Moral" {% if form.regimen_fiscal.value == "Persona Moral" %}selected{% endif %}>Persona Moral</option>
+          <option value="Persona Física" {% if form.regimen_fiscal.value == "Persona Física" %}selected{% endif %}>Persona Física</option>
+          {% with v=form.regimen_fiscal.value %}{% if v and v != "Persona Moral" and v != "Persona Física" %}<option value="{{ v }}" selected>{{ v }}</option>{% endif %}{% endwith %}
+        </select>
+        {% if form.regimen_fiscal.errors %}<p class="text-red-500 text-xs mt-1">{{ form.regimen_fiscal.errors.0 }}</p>{% endif %}
+      </div>
+      <div>
+        <label class="block text-xs font-bold text-[#353131] mb-1">Código Postal</label>
+        {{ form.cp }}
+        {% if form.cp.errors %}<p class="text-red-500 text-xs mt-1">{{ form.cp.errors.0 }}</p>{% endif %}
+      </div>
     </div>
-  </form>
-</div>
+
+    <div class="mt-4">
+      <label class="block text-xs font-bold text-[#353131] mb-1">Dirección Fiscal</label>
+      <div class="relative [&_textarea]:pl-10 [&_textarea]:uppercase">
+        <svg class="absolute top-3 left-3 text-[#817e7e]" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg>
+        {{ form.direccion }}
+      </div>
+      {% if form.direccion.errors %}<p class="text-red-500 text-xs mt-1">{{ form.direccion.errors.0 }}</p>{% endif %}
+    </div>
+  </div>
+
+  {# ---------- SECCIÓN 2: DATOS DE CONTACTO ---------- #}
+  <div class="p-5 bg-[#f9fafb] rounded-xl border border-[#e5e7eb]">
+    <h4 class="text-xs font-bold text-[#817e7e] uppercase mb-4 flex items-center gap-2">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"/><path d="M14 2v4a2 2 0 0 0 2 2h4"/><path d="M10 9H8"/><path d="M16 13H8"/><path d="M16 17H8"/></svg>
+      Datos de Contacto
+    </h4>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+      <div class="[&_input]:uppercase">
+        <label class="block text-xs font-bold text-[#353131] mb-1">Persona de Contacto *</label>
+        {{ form.contacto }}
+        {% if form.contacto.errors %}<p class="text-red-500 text-xs mt-1">{{ form.contacto.errors.0 }}</p>{% endif %}
+      </div>
+      <div>
+        <label class="block text-xs font-bold text-[#353131] mb-1">Estatus *</label>
+        {{ form.estatus }}
+        {% if form.estatus.errors %}<p class="text-red-500 text-xs mt-1">{{ form.estatus.errors.0 }}</p>{% endif %}
+      </div>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-5 mt-4">
+      <div>
+        <label class="block text-xs font-bold text-[#353131] mb-1">Email</label>
+        <div class="relative [&_input]:pl-10">
+          <svg class="absolute top-1/2 -translate-y-1/2 left-3 text-[#817e7e]" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="20" height="16" x="2" y="4" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></svg>
+          {{ form.email }}
+        </div>
+        {% if form.email.errors %}<p class="text-red-500 text-xs mt-1">{{ form.email.errors.0 }}</p>{% endif %}
+      </div>
+      <div>
+        <label class="block text-xs font-bold text-[#353131] mb-1">Teléfono Celular</label>
+        <div class="relative [&_input]:pl-10">
+          <svg class="absolute top-1/2 -translate-y-1/2 left-3 text-[#817e7e]" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.790 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+          {{ form.telefono }}
+        </div>
+        {% if form.telefono.errors %}<p class="text-red-500 text-xs mt-1">{{ form.telefono.errors.0 }}</p>{% endif %}
+      </div>
+    </div>
+
+    <div class="mt-4">
+      <label class="block text-xs font-bold text-[#353131] mb-1">Teléfono Oficina</label>
+      <div class="relative [&_input]:pl-10">
+        <svg class="absolute top-1/2 -translate-y-1/2 left-3 text-[#817e7e]" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 22V4a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v18Z"/><path d="M6 12H4a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h2"/><path d="M18 9h2a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2h-2"/><path d="M10 6h4"/><path d="M10 10h4"/><path d="M10 14h4"/><path d="M10 18h4"/></svg>
+        {{ form.telefono_secundario }}
+      </div>
+      {% if form.telefono_secundario.errors %}<p class="text-red-500 text-xs mt-1">{{ form.telefono_secundario.errors.0 }}</p>{% endif %}
+    </div>
+  </div>
+
+  <div class="flex justify-end gap-3 mt-6 pt-4 border-t border-[#c0c6b6]/30">
+    {% csrf_token %}
+    <button type="button" @click="modalOpen = false"
+            class="cursor-pointer px-6 py-3 text-[#817e7e] font-bold hover:bg-[#f2f5f0] rounded-xl transition-all">
+      Cancelar
+    </button>
+    <button type="submit"
+            class="cursor-pointer px-8 py-3 bg-[#719c44] hover:bg-[#5e8239] text-white font-bold rounded-xl shadow-lg shadow-[#719c44]/30 transition-all transform active:scale-95">
+      {% if donante %}Actualizar Datos{% else %}Guardar Donante{% endif %}
+    </button>
+  </div>
+</form>
+{% endblock %}

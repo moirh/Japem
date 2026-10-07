@@ -2,3 +2,5 @@ Django>=5.2,<6.0
 psycopg2-binary>=2.9
 django-htmx>=1.19
 python-dotenv>=1.0
+reportlab>=4.0
+mysqlclient>=2.2

@@ -3,8 +3,8 @@ from django import forms
 from .models import Donante
 
 INPUT_CLASSES = (
-    "w-full px-3 py-2.5 bg-gray-50 border-2 border-gray-200 rounded-xl "
-    "text-japem-dark focus:outline-none focus:bg-white focus:border-japem-green transition"
+    "w-full px-4 py-2.5 border border-[#c0c6b6] rounded-lg text-sm bg-white text-[#353131] "
+    "focus:ring-4 focus:ring-[#719c44]/20 focus:border-[#719c44] outline-none transition-all"
 )
 
 

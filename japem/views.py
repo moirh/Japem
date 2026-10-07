@@ -1,5 +1,5 @@
 from django.contrib.auth.decorators import login_required
-from django.db.models import Q
+from django.db.models import Count, Q, Sum
 from django.shortcuts import render
 from django.utils import timezone
 
@@ -25,9 +25,12 @@ def home(request):
     )
     recordatorios = Recordatorio.objects.filter(user=user).order_by("date")
 
-    donativos_mes = Donativo.objects.filter(
-        created_at__year=today.year, created_at__month=today.month
-    ).count()
+        # Tarjeta "Donativos del mes": entradas con fecha de donativo en el mes actual
+    resumen_mes = Donativo.objects.filter(
+        fecha_donativo__year=today.year, fecha_donativo__month=today.month
+    ).aggregate(total=Count("id"), monto=Sum("monto_total_deducible"))
+    donativos_mes = resumen_mes["total"]
+    monto_mes = resumen_mes["monto"] or 0
 
     calendar_events = [
         {"date": a.date.isoformat(), "title": a.title, "type": "acuerdo"} for a in acuerdos
@@ -48,6 +51,7 @@ def home(request):
             "acuerdos": acuerdos,
             "recordatorios": recordatorios,
             "donativos_mes": donativos_mes,
+            "monto_mes": monto_mes,
             "calendar_events": calendar_events,
             "proximo": proximo,
             "usuarios": usuarios,
