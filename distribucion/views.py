@@ -2,6 +2,7 @@ from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.db import transaction
 from django.db.models import F
+from django.http import HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
 from django.views.decorators.http import require_POST
@@ -11,6 +12,7 @@ from donativos.models import Inventario
 
 from .models import Asignacion, DetalleAsignacion
 from .services import sugerir_iaps
+from .vale import generar_vale_pdf
 
 
 @login_required
@@ -192,3 +194,24 @@ def entregar_confirmar(request, pk):
 
     messages.success(request, "Entrega confirmada. Inventario actualizado.")
     return redirect("distribucion:mesa_control")
+
+@login_required
+def entrega_detalle(request, pk):
+    """Modal "Detalles de Entrega" (botón Ver Detalles de Entrega.tsx)."""
+    if not request.htmx:
+        return redirect("distribucion:mesa_control")
+    asignacion = get_object_or_404(Asignacion.objects.select_related("iap"), pk=pk)
+    return render(request, "distribucion/_entrega_detalle.html", {"asignacion": asignacion})
+
+
+@login_required
+def entrega_vale(request, pk):
+    """Vale de Salida de Almacén en PDF (botón "Vale" de Entrega.tsx)."""
+    asignacion = get_object_or_404(Asignacion.objects.select_related("iap"), pk=pk)
+    if asignacion.estatus == Asignacion.Estatus.PENDIENTE:
+        messages.error(request, "El vale solo está disponible para entregas confirmadas.")
+        return redirect("distribucion:mesa_control")
+
+    response = HttpResponse(generar_vale_pdf(asignacion), content_type="application/pdf")
+    response["Content-Disposition"] = f'inline; filename="vale_entrega_{asignacion.pk:06d}.pdf"'
+    return response
