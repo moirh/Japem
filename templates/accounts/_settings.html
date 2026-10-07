@@ -1,0 +1,60 @@
+{% extends "_modal.html" %}
+{# Configuración del Sistema — migrado de components/ui/SettingsModal.tsx #}
+
+{% block size %}max-w-7xl{% endblock %}
+
+{% block title %}Configuración del Sistema{% endblock %}
+
+{% block icon %}<svg class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/></svg>{% endblock %}
+
+{% block body %}
+{# data-modal-local: las peticiones de aquí cambian solo el panel derecho, no todo el modal #}
+<div class="-m-6 flex flex-col lg:flex-row lg:h-[600px] bg-white" x-data="{ tab: 'perfil' }" data-modal-local>
+
+  {# === SIDEBAR === #}
+  <aside class="lg:w-64 shrink-0 bg-gray-50 border-b lg:border-b-0 lg:border-r border-gray-200 p-3 lg:p-5 flex flex-row lg:flex-col gap-2">
+    <p class="hidden lg:block text-xs font-bold text-gray-400 uppercase tracking-wider mb-2 ml-2">Cuenta</p>
+    <button type="button" @click="tab = 'perfil'"
+            hx-get="{% url 'accounts:settings_perfil' %}" hx-target="#settings-panel" hx-indicator="#settings-loader"
+            :class="tab === 'perfil' ? 'bg-white text-[#719c44] shadow-sm ring-1 ring-gray-200' : 'text-gray-500 hover:bg-gray-100 hover:text-gray-700'"
+            class="cursor-pointer flex-1 lg:flex-none text-left px-4 py-3 rounded-xl font-medium text-sm flex items-center justify-center lg:justify-start gap-3 transition-all duration-200">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+      Mi Perfil
+    </button>
+
+    {% if can_view_users %}
+    <p class="hidden lg:block text-xs font-bold text-gray-400 uppercase tracking-wider mb-2 mt-4 ml-2">Administración</p>
+    <button type="button" @click="tab = 'usuarios'"
+            hx-get="{% url 'accounts:settings_usuarios' %}" hx-target="#settings-panel" hx-indicator="#settings-loader"
+            :class="tab === 'usuarios' ? 'bg-white text-[#719c44] shadow-sm ring-1 ring-gray-200' : 'text-gray-500 hover:bg-gray-100 hover:text-gray-700'"
+            class="cursor-pointer flex-1 lg:flex-none text-left px-4 py-3 rounded-xl font-medium text-sm flex items-center justify-center lg:justify-start gap-3 transition-all duration-200">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z"/></svg>
+      Usuarios
+    </button>
+    {% endif %}
+
+    <div class="hidden lg:block mt-auto pt-6 border-t border-gray-200">
+      <div class="flex items-center gap-3 px-2">
+        <div class="w-8 h-8 rounded-full bg-[#719c44]/10 flex items-center justify-center text-[#719c44] shrink-0">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+        </div>
+        <div class="flex-1 min-w-0">
+          <p class="text-sm font-bold text-gray-800 truncate">{{ user.username|default:"Usuario" }}</p>
+          <p class="text-[10px] text-gray-500 uppercase font-bold">{{ user.role|default:"lector" }}</p>
+        </div>
+      </div>
+    </div>
+  </aside>
+
+  {# === CONTENIDO PRINCIPAL === #}
+  <div class="flex-1 min-w-0 bg-white relative flex flex-col overflow-hidden">
+    <div id="settings-loader" class="htmx-indicator pointer-events-none absolute inset-0 flex flex-col items-center justify-center bg-white/80 z-20">
+      <svg class="animate-spin text-[#719c44] mb-2" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-6.219-8.56"/></svg>
+      <p class="text-sm text-gray-500 font-medium">Cargando información...</p>
+    </div>
+    <div id="settings-panel" class="flex-1 p-4 sm:p-8 lg:overflow-y-auto">
+      {% include "accounts/_settings_perfil.html" %}
+    </div>
+  </div>
+</div>
+{% endblock %}

@@ -2,10 +2,15 @@ from django import forms
 
 from .models import User
 
+# Mismo estilo de inputs que SettingsModal.tsx
 INPUT_CLASSES = (
-    "w-full px-3 py-2.5 bg-gray-50 border-2 border-gray-200 rounded-xl "
-    "text-japem-dark focus:outline-none focus:bg-white focus:border-japem-green transition"
+    "w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-sm text-[#353131] "
+    "outline-none focus:bg-white focus:ring-2 focus:ring-[#719c44]/20 focus:border-[#719c44] transition-all"
 )
+PASSWORD_ATTRS = {"class": INPUT_CLASSES, "placeholder": "••••••••"}
+
+# Orden de los roles igual que en el formulario del original
+ORDEN_ROLES = ["lector", "editor", "donativos", "asistencial", "admin", "superadmin"]
 
 
 class ProfileForm(forms.ModelForm):
@@ -25,11 +30,11 @@ class ChangePasswordForm(forms.Form):
 
     current_password = forms.CharField(
         label="Contraseña actual", required=False,
-        widget=forms.PasswordInput(attrs={"class": INPUT_CLASSES}),
+        widget=forms.PasswordInput(attrs=PASSWORD_ATTRS),
     )
     new_password = forms.CharField(
         label="Nueva contraseña", required=False, min_length=6,
-        widget=forms.PasswordInput(attrs={"class": INPUT_CLASSES}),
+        widget=forms.PasswordInput(attrs=PASSWORD_ATTRS),
     )
 
     def __init__(self, *args, user=None, **kwargs):
@@ -71,6 +76,8 @@ class UserForm(forms.ModelForm):
         super().__init__(*args, **kwargs)
         if not self.instance.pk:
             self.fields["password"].required = True
+        choices = dict(self.fields["role"].choices)
+        self.fields["role"].choices = [(r, choices[r]) for r in ORDEN_ROLES if r in choices]
 
     def save(self, commit=True):
         user = super().save(commit=False)

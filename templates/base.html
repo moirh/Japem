@@ -170,24 +170,14 @@
           </div>
         </div>
 
-        {# --- Configuración (temporal: menú; luego se reemplaza por el SettingsModal) --- #}
-        <div class="relative" x-data="{ open: false }" @click.outside="open = false">
-          <button type="button" @click="open = !open"
-                  class="cursor-pointer p-2 rounded-full bg-transparent hover:bg-[#f2f5f0] text-[#353131] hover:text-[#719c44] transition" title="Configuración">
+                {# --- Configuración (abre el SettingsModal) --- #}
+        <button type="button" title="Configuración"
+                @click="modalOpen = true"
+                hx-get="{% url 'accounts:settings' %}"
+                hx-target="#modal-content"
+                class="cursor-pointer p-2 rounded-full bg-transparent hover:bg-[#f2f5f0] text-[#353131] hover:text-[#719c44] transition">
             <svg class="w-5 h-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/></svg>
-          </button>
-          <div x-show="open" x-cloak x-transition.origin.top.right
-               class="absolute right-0 mt-3 w-52 bg-white rounded-2xl shadow-xl border border-[#c0c6b6]/50 overflow-hidden z-[70] py-2">
-            <div class="px-4 py-2 border-b border-gray-100 mb-1">
-              <p class="text-sm font-bold text-[#353131] truncate">{{ user.name|default:user.username }}</p>
-              <p class="text-[10px] font-bold uppercase tracking-wide text-[#719c44]">{{ user.get_role_display }}</p>
-            </div>
-            <a href="{% url 'accounts:profile' %}" class="block px-4 py-2 text-sm text-[#353131] hover:bg-[#f2f5f0] hover:text-[#719c44] transition">Mi perfil</a>
-            {% if user.role == 'admin' or user.role == 'superadmin' %}
-            <a href="{% url 'accounts:user_list' %}" class="block px-4 py-2 text-sm text-[#353131] hover:bg-[#f2f5f0] hover:text-[#719c44] transition">Usuarios</a>
-            {% endif %}
-          </div>
-        </div>
+        </button>
 
         <div class="hidden sm:block h-6 w-px bg-[#c0c6b6] mx-2"></div>
 
@@ -294,12 +284,13 @@
       return false;
     }
 
-    // 3) Si el formulario del modal tiene errores, se vuelve a mostrar dentro del modal
+        // 3) Si el formulario del modal tiene errores, se vuelve a mostrar dentro del modal
     //    (en lugar de reemplazar la tabla de fondo)
     document.addEventListener("htmx:beforeSwap", function (e) {
       const panel = document.getElementById("modal-panel");
       const origen = e.detail.requestConfig && e.detail.requestConfig.elt;
       if (!panel || !origen || !panel.contains(origen)) return;
+      if (origen.closest("[data-modal-local]")) return;  // p. ej. Configuración: solo cambia su panel
       const trigger = e.detail.xhr.getResponseHeader("HX-Trigger") || "";
       if (!trigger.includes("closeModal")) e.detail.target = panel;
     });
