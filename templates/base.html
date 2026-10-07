@@ -71,7 +71,8 @@
         document.body.style.overflow = abierto ? 'hidden' : '';
         if (!abierto) setTimeout(() => { if (!modalOpen) document.getElementById('modal-content').innerHTML = '' }, 300);
       })"
-      x-on:close-modal.camel.window="modalOpen = false">
+            x-on:close-modal.camel.window="modalOpen = false"
+            hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}'>
 
   {% with app=request.resolver_match.app_name url=request.resolver_match.url_name %}
   {% if user.is_authenticated %}
@@ -304,6 +305,11 @@
       const trigger = e.detail.xhr.getResponseHeader("HX-Trigger") || "";
       if (el.tagName === "FORM" && !trigger.includes("closeModal")) return;
       alertaExito(el.dataset.successTitle, el.dataset.successText);
+    });
+
+    // 6) Alerta enviada por el servidor con HX-Trigger: {"alertaExito": {"titulo": ..., "texto": ...}}
+    document.addEventListener("alertaExito", function (e) {
+      alertaExito(e.detail.titulo, e.detail.texto);
     });
 
     // 5) Mensajes de Django (messages.success / messages.error) como alertas

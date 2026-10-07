@@ -1,30 +1,121 @@
-<div id="inventario-table" class="bg-white rounded-2xl shadow overflow-x-auto">
-  <table class="w-full min-w-[640px] text-sm">
-    <thead class="bg-japem-bg text-japem-dark text-left">
-      <tr>
-        <th class="px-4 py-3">Producto</th>
-        <th class="px-4 py-3">Categoría</th>
-        <th class="px-4 py-3">Unidad</th>
-        <th class="px-4 py-3">Estado</th>
-        <th class="px-4 py-3 text-right">Stock actual</th>
-        <th class="px-4 py-3 text-right">Valor deducible</th>
-        <th class="px-4 py-3">Caducidad</th>
-      </tr>
-    </thead>
-    <tbody>
-      {% for item in resumen %}
-      <tr class="border-t border-japem-accent/20">
-        <td class="px-4 py-3 font-medium text-japem-dark">{{ item.nombre }}</td>
-        <td class="px-4 py-3 text-japem-muted">{{ item.categoria_producto|default:"—" }}</td>
-        <td class="px-4 py-3 text-japem-muted">{{ item.unidad_medida|default:"—" }}</td>
-        <td class="px-4 py-3">{{ item.estado|default:"—" }}</td>
-        <td class="px-4 py-3 text-right font-bold">{{ item.cantidad_actual }}</td>
-        <td class="px-4 py-3 text-right">${{ item.precio_total|floatformat:2 }}</td>
-        <td class="px-4 py-3 text-japem-muted">{{ item.fecha_caducidad|default:"—" }}</td>
-      </tr>
-      {% empty %}
-      <tr><td colspan="7" class="px-4 py-8 text-center text-japem-muted">Sin stock disponible.</td></tr>
-      {% endfor %}
-    </tbody>
-  </table>
+{# Tabla de Inventario — diseño migrado de InventarioTable.tsx + components/ui/Table.tsx #}
+<div id="inventario-table"
+     class="bg-white rounded-xl shadow-xl shadow-[#c0c6b6]/20 border border-[#c0c6b6]/30 overflow-hidden w-full"
+     x-data="{ q: '', n: {{ resumen|length }} }"
+     x-effect="n = [...$refs.rows.querySelectorAll('tr[data-row]')].filter(r => (!cat || r.dataset.cat === cat) && (!q || r.textContent.toLowerCase().includes(q.toLowerCase()))).length">
+  <div class="w-full">
+
+    {# Buscador #}
+    <div class="mb-4">
+      <input type="text" placeholder="Buscar..." x-model="q"
+             class="w-full md:w-1/3 px-4 py-2 bg-gray-100 text-gray-900 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-gray-400 placeholder-gray-500 transition">
+    </div>
+
+    <div class="overflow-x-auto rounded-2xl border border-gray-200 shadow-sm bg-white">
+      <table class="min-w-full border-separate border-spacing-0">
+        <thead>
+          <tr class="bg-gray-50">
+            <th class="px-6 py-4 text-left text-sm font-semibold text-gray-700 border-b border-gray-200 tracking-wide whitespace-nowrap">Producto</th>
+            <th class="px-6 py-4 text-left text-sm font-semibold text-gray-700 border-b border-gray-200 tracking-wide whitespace-nowrap">Categoría</th>
+            <th class="px-6 py-4 text-left text-sm font-semibold text-gray-700 border-b border-gray-200 tracking-wide whitespace-nowrap">Stock Disponible</th>
+            <th class="px-6 py-4 text-left text-sm font-semibold text-gray-700 border-b border-gray-200 tracking-wide whitespace-nowrap">Estatus</th>
+            <th class="px-6 py-4 text-left text-sm font-semibold text-gray-700 border-b border-gray-200 tracking-wide whitespace-nowrap">Caducidad</th>
+            <th class="px-6 py-4 text-left text-sm font-semibold text-gray-700 border-b border-gray-200 tracking-wide whitespace-nowrap">Condición</th>
+          </tr>
+        </thead>
+        <tbody x-ref="rows">
+          {% for item in resumen %}
+          <tr data-row data-cat="{{ item.categoria_producto|default:'' }}"
+              x-show="(!cat || $el.dataset.cat === cat) && (!q || $el.textContent.toLowerCase().includes(q.toLowerCase()))"
+              class="group transition-all duration-200 hover:bg-gray-50/70 hover:shadow-sm">
+
+            {# Producto #}
+            <td class="px-6 py-4 text-gray-800 border-b border-gray-100 text-sm">
+              <div class="text-left pl-2">
+                <div class="font-bold text-[#353131] text-sm uppercase">{{ item.nombre }}</div>
+                {% if item.clave_sat %}<div class="text-[10px] text-[#817e7e] font-mono">SAT: {{ item.clave_sat }}</div>{% endif %}
+              </div>
+            </td>
+
+            {# Categoría #}
+            <td class="px-6 py-4 text-gray-800 border-b border-gray-100 text-sm">
+              {% if item.categoria_producto %}
+              <div class="flex justify-start">
+                <span class="text-[10px] font-extrabold text-[#719c44] uppercase tracking-widest bg-[#f2f5f0] px-2 py-1 rounded-md border border-[#c0c6b6] whitespace-nowrap">{{ item.categoria_producto }}</span>
+              </div>
+              {% endif %}
+            </td>
+
+            {# Stock disponible (rojo si quedan menos de 5) #}
+            <td class="px-6 py-4 text-gray-800 border-b border-gray-100 text-sm">
+              <div class="flex justify-start items-center gap-1.5">
+                <span class="text-lg font-bold {% if item.cantidad_actual < 5 %}text-red-500{% else %}text-[#719c44]{% endif %}">{{ item.cantidad_actual|floatformat:"-2" }}</span>
+                <span class="text-[10px] text-[#817e7e] font-bold bg-[#f9fafb] px-1.5 py-0.5 rounded uppercase border border-[#e5e7eb]">{{ item.unidad_medida|default:item.clave_unidad|default:"PZA" }}</span>
+              </div>
+            </td>
+
+            {# Semáforo de rotación #}
+            <td class="px-6 py-4 text-gray-800 border-b border-gray-100 text-sm">
+              <div class="flex justify-start" title="{{ item.dias_en_almacen }} días en almacén">
+                {% if item.semaforo_rotacion == "critico" %}
+                <span class="bg-red-100 text-red-700 px-2 py-0.5 rounded-full font-bold text-[10px] border border-red-200 flex items-center gap-1 whitespace-nowrap">
+                  <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z"/></svg>
+                  URGENTE
+                </span>
+                {% elif item.semaforo_rotacion == "atencion" %}
+                <span class="bg-yellow-100 text-yellow-800 px-2 py-0.5 rounded-full font-bold text-[10px] border border-yellow-200 flex items-center gap-1 whitespace-nowrap">
+                  <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3"/><path d="M12 9v4"/><path d="M12 17h.01"/></svg>
+                  LENTO
+                </span>
+                {% else %}
+                <span class="bg-[#f2f5f0] text-[#719c44] px-2 py-0.5 rounded-full font-bold text-[10px] border border-[#c0c6b6] flex items-center gap-1 whitespace-nowrap">
+                  <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 20A7 7 0 0 1 9.8 6.1C15.5 5 17 4.48 19 2c1 2 2 4.18 2 8 0 5.5-4.78 10-10 10Z"/><path d="M2 21c0-3 1.85-5.36 5.08-6C9.5 14.52 12 13 13 12"/></svg>
+                  RECIENTE
+                </span>
+                {% endif %}
+              </div>
+            </td>
+
+            {# Caducidad #}
+            <td class="px-6 py-4 text-gray-800 border-b border-gray-100 text-sm">
+              <div class="flex flex-col items-start gap-1">
+                {% if item.caducidad_status == "vencido" %}
+                <span class="px-2 py-0.5 rounded text-[10px] uppercase font-bold tracking-wide bg-red-100 text-red-700 border border-red-200 whitespace-nowrap">VENCIDO</span>
+                {% elif item.caducidad_status == "por_vencer" %}
+                <span class="px-2 py-0.5 rounded text-[10px] uppercase font-bold tracking-wide bg-orange-100 text-orange-700 border border-orange-200 whitespace-nowrap">POR VENCER</span>
+                {% elif item.caducidad_status == "vigente" %}
+                <span class="px-2 py-0.5 rounded text-[10px] uppercase font-bold tracking-wide bg-[#f2f5f0] text-[#719c44] border border-[#c0c6b6] whitespace-nowrap">VIGENTE</span>
+                {% else %}
+                <span class="px-2 py-0.5 rounded text-[10px] uppercase font-bold tracking-wide bg-[#f9fafb] text-[#817e7e] border border-[#e5e7eb] whitespace-nowrap">NO APLICA</span>
+                {% endif %}
+                {% if item.fecha_caducidad %}
+                <div class="flex items-center gap-1 text-xs text-[#817e7e] font-medium whitespace-nowrap">
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="4" rx="2"/><line x1="16" x2="16" y1="2" y2="6"/><line x1="8" x2="8" y1="2" y2="6"/><line x1="3" x2="21" y1="10" y2="10"/></svg>
+                  {{ item.fecha_caducidad|date:"d/m/Y" }}
+                </div>
+                {% endif %}
+              </div>
+            </td>
+
+            {# Condición #}
+            <td class="px-6 py-4 text-gray-800 border-b border-gray-100 text-sm">
+              <div class="flex justify-start">
+                <span class="px-2 py-1 rounded-lg text-xs font-medium border whitespace-nowrap
+                  {% if item.estado == 'Nuevo' %}bg-[#f0fdf4] text-[#15803d] border-[#bbf7d0]{% elif item.estado == 'Buen Estado' %}bg-[#f0f9ff] text-[#0369a1] border-[#bae6fd]{% else %}bg-[#f9fafb] text-[#817e7e] border-[#e5e7eb]{% endif %}">
+                  {{ item.estado|default:"N/A" }}
+                </span>
+              </div>
+            </td>
+          </tr>
+          {% empty %}
+          <tr><td colspan="6" class="px-6 py-8 text-center text-sm text-gray-500 border-b border-gray-100">Sin stock disponible.</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+
+    <div class="flex justify-between items-center mt-6 px-2 pb-4">
+      <span class="text-sm text-gray-600 tracking-wide">Mostrando <span x-text="n"></span> registros</span>
+    </div>
+  </div>
 </div>

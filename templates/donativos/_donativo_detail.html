@@ -1,0 +1,154 @@
+{% extends "_modal.html" %}
+
+{% block size %}max-w-7xl{% endblock %}
+
+{% block title %}Detalle y Ajuste de Precios{% endblock %}
+
+{% block body %}
+{# Detalle de Entrada — modal migrado de DonativosTable.tsx #}
+<div class="space-y-6 p-1">
+
+  {% if error %}
+  <div class="p-4 bg-red-50 border border-red-100 text-red-600 rounded-xl text-sm font-medium">{{ error }}</div>
+  {% endif %}
+
+  {# Resumen #}
+  <div class="bg-[#f2f5f0] p-4 rounded-xl border border-[#c0c6b6] grid grid-cols-2 md:grid-cols-4 gap-4 text-xs">
+    <div>
+      <p class="text-[#817e7e] font-bold uppercase">Donante</p>
+      <p class="text-[#353131] font-bold text-sm">{{ donativo.donante.razon_social }}</p>
+    </div>
+    <div>
+      <p class="text-[#817e7e] font-bold uppercase">Fecha</p>
+      <p class="text-[#719c44] font-bold">{{ donativo.fecha_donativo|date:"j \d\e F \d\e Y" }}</p>
+    </div>
+    <div>
+      <p class="text-[#817e7e] font-bold uppercase">Total Deducible</p>
+      <p class="text-[#353131] font-bold">${{ donativo.monto_total_deducible|floatformat:"2g" }}</p>
+    </div>
+    <div>
+      <p class="text-[#817e7e] font-bold uppercase">Observaciones</p>
+      <p class="text-[#817e7e] italic">{{ donativo.observaciones|default:"Sin observaciones" }}</p>
+    </div>
+  </div>
+
+  {# Tabla editable de precios #}
+  <form id="form-precios"
+        hx-post="{% url 'donativos:actualizar_precios' donativo.pk %}"
+        hx-target="#donativos-table"
+        hx-swap="outerHTML"
+        data-success-title="Precios Actualizados"
+        data-success-text="Los precios de recuperación se han guardado correctamente.">
+    {% csrf_token %}
+    <div class="border border-[#c0c6b6]/50 rounded-xl overflow-hidden overflow-x-auto shadow-sm">
+      <table class="w-full min-w-[760px] text-sm text-left">
+        <thead class="bg-[#f9fafb] text-[#817e7e] font-bold uppercase text-[11px]">
+          <tr>
+            <th class="px-3 py-3 min-w-[150px]">Producto</th>
+            <th class="px-2 py-3 text-center">Cant.</th>
+            <th class="px-3 py-3 text-right bg-gray-50 border-l">P. Deducible</th>
+            <th class="px-3 py-3 text-right bg-gray-50">Total Ded.</th>
+            <th class="px-2 py-3 text-center text-[#719c44] bg-[#f2f5f0] border-l border-[#c0c6b6]/30 w-[130px]">
+              P. Venta {% if can_edit %}(Editable){% else %}(Solo Lectura){% endif %}
+            </th>
+            <th class="px-3 py-3 text-right text-[#719c44] bg-[#f2f5f0]">Total Venta</th>
+            {% if can_edit %}
+            <th class="px-2 py-3 text-center text-red-500 bg-red-50/50 border-l border-[#c0c6b6]/30">Devolver</th>
+            {% endif %}
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-[#f2f5f0]">
+          {% for det in donativo.inventarios.all %}
+          <tr class="hover:bg-[#f9fafb] transition-colors">
+            <td class="px-3 py-2 font-medium text-[#353131]">
+              <span class="{% if det.cantidad_actual <= 0 %}line-through text-gray-400{% endif %}">{{ det.nombre_producto }}</span>
+              <div class="text-[10px] text-[#817e7e]">{{ det.clave_unidad }}</div>
+            </td>
+            <td class="px-2 py-2 text-center text-[#353131] font-bold bg-gray-50/50">
+              {% if det.cantidad_actual <= 0 %}<span class="text-red-500">0</span>{% else %}{{ det.cantidad_actual|floatformat:"-2" }}{% endif %}
+            </td>
+            <td class="px-3 py-2 text-right text-[#817e7e] border-l border-gray-100">${{ det.precio_unitario_deducible|floatformat:"2g" }}</td>
+            <td class="px-3 py-2 text-right font-medium text-[#817e7e]">${{ det.monto_deducible_total|floatformat:"2g" }}</td>
+            <td class="px-2 py-2 border-l border-[#c0c6b6]/30 bg-[#f2f5f0]/30">
+              <div class="relative">
+                <span class="absolute left-2 top-1/2 -translate-y-1/2 text-[#719c44] font-bold">$</span>
+                <input type="number" min="0" step="0.01"
+                       name="precio_venta_unitario_{{ det.pk }}"
+                       value="{{ det.precio_venta_unitario|stringformat:'s' }}"
+                       onfocus="this.select()"
+                       {% if not can_edit or det.cantidad_actual <= 0 %}disabled{% endif %}
+                       class="w-full pl-5 pr-2 py-1.5 border rounded-lg text-right font-bold outline-none text-sm
+                         {% if not can_edit or det.cantidad_actual <= 0 %}bg-transparent border-transparent text-[#817e7e]{% else %}bg-white border-[#c0c6b6] text-[#353131] focus:ring-2 focus:ring-[#719c44]{% endif %}">
+              </div>
+            </td>
+            <td class="px-3 py-2 text-right font-bold text-[#719c44] bg-[#f2f5f0]/30">${{ det.precio_venta_total|floatformat:"2g" }}</td>
+            {% if can_edit %}
+            <td class="px-2 py-2 text-center border-l border-[#c0c6b6]/30 bg-red-50/10">
+              <button type="button"
+                      {% if det.cantidad_actual <= 0 %}disabled{% endif %}
+                      onclick="devolverProducto(this)"
+                      data-url="{% url 'donativos:devolver_item' det.pk %}"
+                      data-nombre="{{ det.nombre_producto }}"
+                      data-max="{{ det.cantidad_actual|floatformat:0 }}"
+                      title="Regresar o mermar producto dañado"
+                      class="p-1.5 rounded-md transition-all {% if det.cantidad_actual <= 0 %}text-gray-300 cursor-not-allowed{% else %}text-red-400 hover:text-red-600 hover:bg-red-50 cursor-pointer{% endif %}">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 14 4 9l5-5"/><path d="M4 9h10.5a5.5 5.5 0 0 1 5.5 5.5a5.5 5.5 0 0 1-5.5 5.5H11"/></svg>
+              </button>
+            </td>
+            {% endif %}
+          </tr>
+          {% empty %}
+          <tr><td colspan="7" class="px-4 py-8 text-center text-[#817e7e]">Este donativo no tiene productos.</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+
+    {# Botones #}
+    <div class="flex gap-3 pt-6 mt-6 border-t border-gray-100">
+      <button type="button" @click="modalOpen = false"
+              class="cursor-pointer flex-1 py-3 bg-[#f9fafb] hover:bg-gray-100 text-[#817e7e] font-bold rounded-xl transition border border-[#c0c6b6]/30">
+        {% if can_edit %}Cancelar{% else %}Cerrar{% endif %}
+      </button>
+      {% if can_edit %}
+      <button type="submit"
+              class="cursor-pointer flex-1 py-3 bg-[#719c44] hover:bg-[#5e8239] text-white font-bold rounded-xl shadow-md shadow-[#719c44]/20 transition transform active:scale-95 flex items-center justify-center gap-2">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15.2 3a2 2 0 0 1 1.4.6l3.8 3.8a2 2 0 0 1 .6 1.4V19a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2z"/><path d="M17 21v-7a1 1 0 0 0-1-1H8a1 1 0 0 0-1 1v7"/><path d="M7 3v4a1 1 0 0 0 1 1h7"/></svg>
+        Guardar Precios
+      </button>
+      {% endif %}
+    </div>
+  </form>
+</div>
+
+{% if can_edit %}
+<script>
+  // Devolución / merma: pregunta la cantidad con SweetAlert2 (igual que handleDevolverItem)
+  function devolverProducto(boton) {
+    const nombre = boton.dataset.nombre;
+    const max = Number(boton.dataset.max);
+    const seguro = (t) => t.replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+
+    Swal.fire({
+      title: "Devolver Producto / Merma",
+      html: `¿Cuántas unidades de <b>${seguro(nombre)}</b> vas a retirar por daño o devolución?<br><br>Disponible: <b>${max}</b>`,
+      input: "number",
+      inputAttributes: { min: "1", max: String(max), step: "1" },
+      showCancelButton: true,
+      confirmButtonText: "Registrar Salida",
+      cancelButtonText: "Cancelar",
+      confirmButtonColor: "#d33",
+      cancelButtonColor: "#817e7e",
+      inputValidator: (v) => (!v || Number(v) < 1 || Number(v) > max) ? "Cantidad inválida." : undefined,
+    }).then((r) => {
+      if (!r.isConfirmed) return;
+      htmx.ajax("POST", boton.dataset.url, {
+        target: "#modal-panel",
+        swap: "outerHTML",
+        values: { cantidad: r.value },
+      });
+    });
+  }
+</script>
+{% endif %}
+{% endblock %}
