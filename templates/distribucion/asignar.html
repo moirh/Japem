@@ -3,7 +3,7 @@
 {% block title %}Distribución · JAPEM{% endblock %}
 
 {% block content %}
-<div class="max-w-6xl mx-auto px-6 py-8">
+<div class="w-full">
   <h1 class="text-2xl font-bold text-japem-dark mb-6">Distribución</h1>
 
   <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
@@ -33,7 +33,7 @@
       {% endfor %}
     </div>
 
-    <div id="panel-sugerencias" class="lg:col-span-8 bg-japem-bg p-6 rounded-2xl border border-dashed border-japem-accent min-h-[70vh]">
+    <div id="panel-sugerencias" class="lg:col-span-8 min-w-0 bg-japem-bg p-3 sm:p-6 rounded-2xl border border-dashed border-japem-accent min-h-[40vh] lg:min-h-[70vh]">
       <div class="flex flex-col items-center justify-center h-full text-japem-muted py-20">
         <p class="text-lg font-bold text-japem-dark">Selecciona un producto</p>
         <p class="text-sm mt-1">El sistema sugerirá las mejores IAPs candidatas.</p>

@@ -1,0 +1,14 @@
+SECRET_KEY=change-me-in-production
+APP_DEBUG=true
+ALLOWED_HOSTS=localhost,127.0.0.1
+
+# DB_CONNECTION=sqlite usa un archivo local db.sqlite3 (útil para desarrollo rápido).
+# Cualquier otro valor (o vacío) usa PostgreSQL con los datos de abajo,
+# igual que el backend Laravel original.
+DB_CONNECTION=sqlite
+#DB_CONNECTION=pgsql
+DB_HOST=127.0.0.1
+DB_PORT=5432
+DB_DATABASE=Japem
+DB_USERNAME=postgres
+DB_PASSWORD=123456

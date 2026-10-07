@@ -3,7 +3,7 @@
 {% block title %}Donativo #{{ donativo.pk }} · JAPEM{% endblock %}
 
 {% block content %}
-<div class="max-w-6xl mx-auto px-6 py-8">
+<div class="w-full">
   <div class="flex items-center justify-between mb-6">
     <h1 class="text-2xl font-bold text-japem-dark">Detalle de Entrada #{{ donativo.pk }}</h1>
     <a href="{% url 'donativos:list' %}" class="text-japem-green hover:underline font-medium">&larr; Volver</a>
@@ -38,8 +38,8 @@
   <form id="precios-form" method="post" action="{% url 'donativos:actualizar_precios' donativo.pk %}">{% csrf_token %}</form>
   {% endif %}
 
-  <div class="bg-white rounded-2xl shadow overflow-hidden mb-4">
-    <table class="w-full text-sm">
+  <div class="bg-white rounded-2xl shadow overflow-x-auto mb-4">
+    <table class="w-full min-w-[640px] text-sm">
       <thead class="bg-japem-bg text-japem-dark text-left">
         <tr>
           <th class="px-3 py-3">Producto</th>

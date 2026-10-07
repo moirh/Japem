@@ -1,51 +1,112 @@
 {% extends "base.html" %}
+{% load static %}
 
 {% block title %}Iniciar sesión · JAPEM{% endblock %}
 
 {% block content %}
-<main class="w-full min-h-screen flex items-center justify-center bg-japem-bg px-4" x-data="{ showPassword: false }">
-  <div class="w-full max-w-md bg-white rounded-2xl shadow-2xl p-10">
-    <div class="text-center mb-8">
-      <h1 class="text-2xl font-extrabold text-japem-green mb-1">Bienvenido</h1>
-      <p class="text-sm text-japem-muted">Ingrese sus credenciales para acceder al panel.</p>
+<div class="w-full h-screen relative overflow-hidden bg-[#f3f4f6]"
+     x-data="{ showPassword: false, loading: false }">
+  <div class="grid grid-cols-1 lg:grid-cols-12 h-full">
+
+    {# PANEL IZQUIERDO: Imagen #}
+    <div class="hidden lg:block lg:col-span-7 xl:col-span-8 relative overflow-hidden">
+      <div class="absolute inset-0 bg-[#353131]/20 z-10 mix-blend-multiply"></div>
+      <div class="absolute inset-0 bg-gradient-to-b from-black/50 via-transparent to-transparent z-10"></div>
+      <div class="absolute inset-0 bg-cover bg-center transition-transform duration-[30s] hover:scale-110"
+           style="background-image: url('{% static 'img/Login2.webp' %}')"></div>
     </div>
 
-    {% if error %}
-    <div class="mb-6 p-4 bg-red-50 border border-red-100 text-red-600 rounded-xl text-sm font-medium">
-      {{ error }}
-    </div>
-    {% endif %}
+    {# PANEL DERECHO: Formulario #}
+    <div class="col-span-1 lg:col-span-5 xl:col-span-4 relative flex flex-col h-full bg-white shadow-2xl lg:border-l border-[#c0c6b6]/20">
 
-    <form method="post" class="space-y-5">
-      {% csrf_token %}
-      <div>
-        <label class="block text-xs font-bold text-japem-dark uppercase tracking-wide mb-1.5">Nombre de Usuario</label>
-        <input type="text" name="username" required autofocus
-               class="w-full px-4 py-3 bg-gray-50 border-2 border-gray-200 rounded-xl focus:outline-none focus:bg-white focus:border-japem-green transition"
-               placeholder="Ej. admin.japem">
-      </div>
-      <div>
-        <label class="block text-xs font-bold text-japem-dark uppercase tracking-wide mb-1.5">Contraseña</label>
-        <div class="relative">
-          <input :type="showPassword ? 'text' : 'password'" name="password" required
-                 class="w-full px-4 py-3 pr-16 bg-gray-50 border-2 border-gray-200 rounded-xl focus:outline-none focus:bg-white focus:border-japem-green transition"
-                 placeholder="••••••••">
-          <button type="button" @click="showPassword = !showPassword"
-                  class="absolute right-4 top-1/2 -translate-y-1/2 text-xs font-bold text-japem-muted hover:text-japem-green">
-            <span x-show="!showPassword">Ver</span>
-            <span x-show="showPassword" x-cloak>Ocultar</span>
-          </button>
+      <div class="flex-1 flex items-center justify-center px-8 py-10">
+        <div class="w-full max-w-md">
+
+          <div class="text-center mb-10">
+            <img src="{% static 'img/LogoVerde.jpg' %}" alt="Logo JAPEM"
+                 class="h-24 mx-auto mb-6 object-contain hover:scale-105 transition-transform duration-300">
+            <h2 class="text-3xl font-extrabold text-[#719c44] mb-2 tracking-tight">Bienvenido</h2>
+            <p class="text-[#817e7e] font-medium text-sm">Ingrese sus credenciales para acceder al panel.</p>
+          </div>
+
+          {% if error %}
+          <div class="mb-6 p-4 bg-red-50 border border-red-100 text-red-600 rounded-xl text-sm font-medium flex items-center gap-3">
+            <svg class="w-5 h-5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            {{ error }}
+          </div>
+          {% endif %}
+
+          <form method="post" class="space-y-6" @submit="loading = true">
+            {% csrf_token %}
+
+            <div>
+              <label class="block text-xs font-bold text-[#353131] mb-1.5 ml-1 uppercase tracking-wide">Nombre de Usuario</label>
+              <input type="text" name="username" required autofocus
+                     value="{{ request.POST.username|default:'' }}"
+                     class="w-full px-4 py-3.5 bg-[#f9fafb] border-2 border-[#e5e7eb] rounded-xl text-[#353131] placeholder-[#c0c6b6] focus:outline-none focus:bg-white focus:border-[#719c44] focus:ring-4 focus:ring-[#719c44]/10 transition-all duration-300"
+                     placeholder="Ej. admin.japem">
+            </div>
+
+            <div>
+              <label class="block text-xs font-bold text-[#353131] mb-1.5 ml-1 uppercase tracking-wide">Contraseña</label>
+              <div class="relative">
+                <input :type="showPassword ? 'text' : 'password'" type="password" name="password" required
+                       class="w-full px-4 py-3.5 pr-12 bg-[#f9fafb] border-2 border-[#e5e7eb] rounded-xl text-[#353131] placeholder-[#c0c6b6] focus:outline-none focus:bg-white focus:border-[#719c44] focus:ring-4 focus:ring-[#719c44]/10 transition-all duration-300"
+                       placeholder="••••••••">
+                <button type="button" @click="showPassword = !showPassword"
+                        :title="showPassword ? 'Ocultar contraseña' : 'Ver contraseña'"
+                        class="absolute right-4 top-1/2 -translate-y-1/2 text-[#c0c6b6] hover:text-[#719c44] transition-colors cursor-pointer p-1 rounded-full hover:bg-gray-100">
+                  {# Ojo abierto #}
+                  <svg x-show="!showPassword" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M2.062 12.348a1 1 0 0 1 0-.696 10.75 10.75 0 0 1 19.876 0 1 1 0 0 1 0 .696 10.75 10.75 0 0 1-19.876 0"/>
+                    <circle cx="12" cy="12" r="3"/>
+                  </svg>
+                  {# Ojo tachado #}
+                  <svg x-show="showPassword" x-cloak xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M10.733 5.076a10.744 10.744 0 0 1 11.205 6.575 1 1 0 0 1 0 .696 10.747 10.747 0 0 1-1.444 2.49"/>
+                    <path d="M14.084 14.158a3 3 0 0 1-4.242-4.242"/>
+                    <path d="M17.479 17.499a10.75 10.75 0 0 1-15.417-5.151 1 1 0 0 1 0-.696 10.75 10.75 0 0 1 4.446-5.143"/>
+                    <path d="m2 2 20 20"/>
+                  </svg>
+                </button>
+              </div>
+            </div>
+
+            <div class="pt-4">
+              <button type="submit" :disabled="loading"
+                      class="w-full py-3.5 px-4 bg-[#719c44] hover:bg-[#5e8239] text-white font-bold rounded-xl shadow-lg shadow-[#719c44]/30 hover:shadow-[#719c44]/50 hover:-translate-y-0.5 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#719c44] disabled:opacity-70 disabled:cursor-not-allowed transition-all duration-300 transform active:scale-95 flex items-center justify-center gap-2">
+                <template x-if="loading">
+                  <span class="flex items-center gap-2">
+                    <span class="animate-spin h-5 w-5 border-2 border-white border-t-transparent rounded-full"></span>
+                    <span>Ingresando...</span>
+                  </span>
+                </template>
+                <span x-show="!loading">Iniciar Sesión</span>
+              </button>
+            </div>
+          </form>
         </div>
       </div>
-      <button type="submit"
-              class="w-full py-3.5 bg-japem-green hover:bg-japem-greendark text-white font-bold rounded-xl shadow-lg shadow-japem-green/30 transition">
-        Iniciar Sesión
-      </button>
-    </form>
 
-    <p class="text-center text-xs text-japem-muted mt-8">
-      &copy; Junta de Asistencia Privada del Estado de México
-    </p>
+      {# Footer del panel derecho #}
+      <div class="px-8 py-5 bg-[#f9fafb] border-t border-[#e5e7eb] text-center">
+        <div class="flex flex-col items-center gap-2">
+          <span class="inline-block bg-[#e5e7eb] text-[#817e7e] px-2 py-0.5 rounded-md text-[10px] font-bold tracking-widest uppercase">
+            SIACE v1.2.0
+          </span>
+          <p class="text-xs text-[#c0c6b6] font-medium">
+            &copy; Junta de Asistencia Privada del Estado de México. <br> Moises Ruiz Hernández
+          </p>
+          <div class="flex justify-center gap-4 mt-1">
+            <a href="#" class="text-[10px] text-[#817e7e] hover:text-[#719c44] font-bold transition-colors uppercase tracking-wide">Aviso de Privacidad</a>
+            <span class="text-[10px] text-[#c0c6b6]">•</span>
+            <a href="#" class="text-[10px] text-[#817e7e] hover:text-[#719c44] font-bold transition-colors uppercase tracking-wide">Soporte Técnico</a>
+          </div>
+        </div>
+      </div>
+    </div>
   </div>
-</main>
+</div>
 {% endblock %}

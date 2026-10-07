@@ -5,6 +5,11 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>{% block title %}JAPEM{% endblock %}</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://unpkg.com/htmx.org@1.9.12"></script>
   <script defer src="https://unpkg.com/alpinejs@3.14.1/dist/cdn.min.js"></script>
@@ -13,7 +18,11 @@
     tailwind.config = {
       theme: {
         extend: {
+          fontFamily: {
+            inter: ["Inter", "sans-serif"],
+          },
           colors: {
+            // Nombres usados en las plantillas de Django
             japem: {
               green: "#719c44",
               greendark: "#5e8239",
@@ -22,63 +31,214 @@
               accent: "#c0c6b6",
               bg: "#f9fafb",
             },
+            // Paleta del tailwind.config.js original
+            colorPrimarioJAPEM: "#036050",
+            colorSecundarioJAPEM: "#1a3a2d",
+            colorTerciarioJAPEM: "#BC955B",
+            colorAuxiliarJAPEM: "#6b7280",
+            primary: "#036050",
+            secondary: "#BC955B",
+            dark: "#1a3a2d",
+          },
+          boxShadow: {
+            xl: "0 20px 25px -5px rgba(0, 0, 0, 0.08), 0 10px 10px -5px rgba(0, 0, 0, 0.01)",
+          },
+          animation: {
+            "fade-in-up": "fadeInUp 0.8s ease-out forwards",
+            "pulse-slow": "pulse 3s infinite",
+            "shake": "shake 0.6s ease-in-out",
+          },
+          keyframes: {
+            fadeInUp: {
+              "0%": { opacity: "0", transform: "translateY(20px)" },
+              "100%": { opacity: "1", transform: "translateY(0)" },
+            },
+            shake: {
+              "0%, 100%": { transform: "translateX(0)" },
+              "10%, 30%, 50%, 70%, 90%": { transform: "translateX(-4px)" },
+              "20%, 40%, 60%, 80%": { transform: "translateX(4px)" },
+            },
           },
         },
       },
     };
   </script>
 </head>
-<body class="bg-gray-100 text-japem-dark" x-data="{ modalOpen: false }" @closemodal.window="modalOpen = false">
+<body class="bg-gray-100 text-[#353131] font-inter" x-data="{ modalOpen: false }" @closemodal.window="modalOpen = false">
+
+  {% with app=request.resolver_match.app_name url=request.resolver_match.url_name %}
   {% if user.is_authenticated %}
-  <header class="fixed top-0 left-0 w-full bg-white shadow-md border-b border-japem-accent/30 z-50">
-    <div class="w-full flex justify-between items-center px-6 py-3">
-      <a href="{% url 'home' %}" class="font-extrabold text-japem-green text-lg">JAPEM</a>
+  {# ===================== HEADER (migrado de Header.tsx) ===================== #}
+  <header class="fixed top-0 left-0 w-full bg-white z-[60] shadow-md border-b border-[#c0c6b6]/30 backdrop-blur-sm"
+        x-data="{ menu: false }" @click.outside="menu = false">
+    <div class="w-full flex justify-between items-center px-4 sm:px-6 py-3">
+
+      <a href="{% url 'home' %}" class="flex items-center space-x-2">
+        <img src="{% static 'img/LogoVerde.jpg' %}" alt="Logo" class="h-8 sm:h-10 w-auto object-contain">
+      </a>
+
       <nav class="hidden md:flex space-x-2">
-        <a href="{% url 'home' %}" class="px-3 py-1.5 rounded-lg text-sm font-medium text-japem-dark hover:bg-japem-bg hover:text-japem-green transition">Inicio</a>
-        <a href="{% url 'donantes:list' %}" class="px-3 py-1.5 rounded-lg text-sm font-medium text-japem-dark hover:bg-japem-bg hover:text-japem-green transition">Donantes</a>
-        <a href="{% url 'donativos:list' %}" class="px-3 py-1.5 rounded-lg text-sm font-medium text-japem-dark hover:bg-japem-bg hover:text-japem-green transition">Donativos</a>
-        <a href="{% url 'donativos:inventario' %}" class="px-3 py-1.5 rounded-lg text-sm font-medium text-japem-dark hover:bg-japem-bg hover:text-japem-green transition">Inventario</a>
-        <a href="{% url 'iaps:list' %}" class="px-3 py-1.5 rounded-lg text-sm font-medium text-japem-dark hover:bg-japem-bg hover:text-japem-green transition">IAPs</a>
-        <a href="{% url 'distribucion:asignar' %}" class="px-3 py-1.5 rounded-lg text-sm font-medium text-japem-dark hover:bg-japem-bg hover:text-japem-green transition">Distribución</a>
-        <a href="{% url 'distribucion:mesa_control' %}" class="px-3 py-1.5 rounded-lg text-sm font-medium text-japem-dark hover:bg-japem-bg hover:text-japem-green transition">Entregas</a>
-        {% if user.role == 'admin' or user.role == 'superadmin' %}
-        <a href="{% url 'accounts:user_list' %}" class="px-3 py-1.5 rounded-lg text-sm font-medium text-japem-dark hover:bg-japem-bg hover:text-japem-green transition">Usuarios</a>
-        {% endif %}
-      </nav>
-      <div class="flex items-center gap-4 text-sm">
-        <a href="{% url 'accounts:profile' %}" class="text-japem-muted hover:text-japem-green transition">
-          {{ user.username }}
-          <span class="text-[10px] font-bold uppercase bg-japem-bg text-japem-green px-2 py-0.5 rounded-full ml-1">{{ user.get_role_display }}</span>
+        <a href="{% url 'home' %}"
+           class="transition-all duration-200 px-3 py-1.5 rounded-lg text-sm font-medium flex items-center gap-2 {% if url == 'home' %}bg-[#719c44] text-white shadow-md shadow-[#719c44]/20{% else %}text-[#353131] hover:bg-[#f2f5f0] hover:text-[#719c44]{% endif %}">
+          Inicio
         </a>
+        <a href="{% url 'donantes:list' %}"
+           class="transition-all duration-200 px-3 py-1.5 rounded-lg text-sm font-medium flex items-center gap-2 {% if app == 'donantes' or app == 'donativos' or app == 'iaps' or app == 'distribucion' %}bg-[#719c44] text-white shadow-md shadow-[#719c44]/20{% else %}text-[#353131] hover:bg-[#f2f5f0] hover:text-[#719c44]{% endif %}">
+          Donativos
+        </a>
+      </nav>
+
+      <div class="flex items-center space-x-1 sm:space-x-3">
+
+        {# --- Botón menú (solo celular/tablet) --- #}
+        <button type="button" @click="menu = !menu" title="Menú"
+                class="md:hidden cursor-pointer p-2 rounded-full hover:bg-[#f2f5f0] text-[#353131] transition">
+          <svg x-show="!menu" class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="4" x2="20" y1="6" y2="6"/><line x1="4" x2="20" y1="12" y2="12"/><line x1="4" x2="20" y1="18" y2="18"/></svg>
+          <svg x-show="menu" x-cloak class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+        </button>
+
+        {# --- Notificaciones --- #}
+        <div class="relative" x-data="{ open: false, count: {{ header_notifications|length|default:0 }}, cleared: false }" @click.outside="open = false">
+          <button type="button" @click="open = !open"
+                  :class="open ? 'bg-[#f2f5f0] text-[#719c44]' : 'bg-transparent hover:bg-[#f2f5f0] text-[#353131]'"
+                  class="cursor-pointer p-2 rounded-full transition relative" title="Notificaciones">
+            <svg class="w-5 h-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.268 21a2 2 0 0 0 3.464 0"/><path d="M3.262 15.326A1 1 0 0 0 4 17h16a1 1 0 0 0 .74-1.673C19.41 13.956 18 12.499 18 8A6 6 0 0 0 6 8c0 4.499-1.411 5.956-2.738 7.326"/></svg>
+            <span x-show="count > 0" class="absolute top-1.5 right-1.5 w-2.5 h-2.5 bg-red-500 rounded-full border-2 border-white animate-pulse"></span>
+          </button>
+
+          <div x-show="open" x-cloak x-transition.origin.top.right
+               class="fixed left-4 right-4 top-[72px] sm:absolute sm:left-auto sm:right-0 sm:top-auto sm:mt-3 sm:w-96 bg-white rounded-2xl shadow-xl border border-[#c0c6b6]/50 overflow-hidden z-[70]">
+            <div class="bg-[#f9fafb] px-4 py-3 border-b border-gray-100 flex justify-between items-center sticky top-0 z-10">
+              <div class="flex items-center gap-2">
+                <h3 class="font-bold text-[#353131] text-sm">Notificaciones</h3>
+                <span class="bg-[#719c44] text-white text-[10px] px-2 py-0.5 rounded-full font-bold" x-text="count"></span>
+              </div>
+              <button type="button" @click="cleared = true; count = 0" class="cursor-pointer text-[10px] text-[#817e7e] hover:text-[#719c44] underline font-medium">Limpiar todo</button>
+            </div>
+            <div class="max-h-[400px] overflow-y-auto p-3 bg-white">
+              <p x-show="count === 0" class="text-center py-8 text-xs text-[#817e7e] opacity-60">¡Todo al día!</p>
+              <div x-show="!cleared">
+                {% for n in header_notifications %}
+                <div x-data="{ expanded: false, gone: false }" x-show="!gone"
+                     class="p-3 mb-2 rounded-xl border transition-all
+                       {% if n.type == 'danger' %}bg-red-50 border-red-100{% elif n.type == 'warning' %}bg-amber-50 border-amber-100{% elif n.type == 'success' %}bg-[#f2f5f0] border-[#c0c6b6]{% else %}bg-blue-50 border-blue-100{% endif %}">
+                  <div class="flex justify-between items-start gap-3">
+                    <div class="mt-0.5 shrink-0 {% if n.type == 'danger' %}text-red-600{% elif n.type == 'warning' %}text-amber-600{% elif n.type == 'success' %}text-[#719c44]{% else %}text-blue-600{% endif %}">
+                      {% if n.type == 'danger' %}
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" x2="12" y1="8" y2="12"/><line x1="12" x2="12.01" y1="16" y2="16"/></svg>
+                      {% elif n.type == 'warning' %}
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3"/><path d="M12 9v4"/><path d="M12 17h.01"/></svg>
+                      {% else %}
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/></svg>
+                      {% endif %}
+                    </div>
+                    <div class="flex-1 min-w-0">
+                      <h4 class="text-sm font-bold text-[#353131] leading-tight">{{ n.title }}</h4>
+                      <span class="text-[10px] text-[#817e7e] flex items-center gap-1 mt-1 font-medium">{{ n.time }}</span>
+                      <div class="text-xs text-[#353131]/80 overflow-hidden transition-all duration-300"
+                           :class="expanded ? 'max-h-40 opacity-100 mt-2' : 'max-h-0 opacity-0'">{{ n.content }}</div>
+                      {% if n.content %}
+                      <button type="button" @click.stop="expanded = !expanded"
+                              class="cursor-pointer text-[10px] font-bold text-[#719c44] flex items-center gap-1 mt-1.5 hover:underline focus:outline-none"
+                              x-text="expanded ? 'Ver menos' : 'Ver más'"></button>
+                      {% endif %}
+                    </div>
+                    <button type="button" @click="gone = true; count--"
+                            class="cursor-pointer text-[#c0c6b6] hover:text-red-400 transition shrink-0 p-1 hover:bg-white/50 rounded-full">
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+                    </button>
+                  </div>
+                </div>
+                {% endfor %}
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {# --- Configuración (temporal: menú; luego se reemplaza por el SettingsModal) --- #}
+        <div class="relative" x-data="{ open: false }" @click.outside="open = false">
+          <button type="button" @click="open = !open"
+                  class="cursor-pointer p-2 rounded-full bg-transparent hover:bg-[#f2f5f0] text-[#353131] hover:text-[#719c44] transition" title="Configuración">
+            <svg class="w-5 h-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/></svg>
+          </button>
+          <div x-show="open" x-cloak x-transition.origin.top.right
+               class="absolute right-0 mt-3 w-52 bg-white rounded-2xl shadow-xl border border-[#c0c6b6]/50 overflow-hidden z-[70] py-2">
+            <div class="px-4 py-2 border-b border-gray-100 mb-1">
+              <p class="text-sm font-bold text-[#353131] truncate">{{ user.name|default:user.username }}</p>
+              <p class="text-[10px] font-bold uppercase tracking-wide text-[#719c44]">{{ user.get_role_display }}</p>
+            </div>
+            <a href="{% url 'accounts:profile' %}" class="block px-4 py-2 text-sm text-[#353131] hover:bg-[#f2f5f0] hover:text-[#719c44] transition">Mi perfil</a>
+            {% if user.role == 'admin' or user.role == 'superadmin' %}
+            <a href="{% url 'accounts:user_list' %}" class="block px-4 py-2 text-sm text-[#353131] hover:bg-[#f2f5f0] hover:text-[#719c44] transition">Usuarios</a>
+            {% endif %}
+          </div>
+        </div>
+
+        <div class="hidden sm:block h-6 w-px bg-[#c0c6b6] mx-2"></div>
+
+        {# --- Cerrar sesión --- #}
         <form method="post" action="{% url 'accounts:logout' %}">
           {% csrf_token %}
-          <button type="submit" class="text-japem-dark hover:text-red-500 font-medium transition">Salir</button>
+          <button type="submit" title="Cerrar Sesión"
+                  class="cursor-pointer p-2 rounded-full bg-transparent hover:bg-red-50 text-[#353131] hover:text-red-500 transition flex items-center gap-2">
+            <svg class="w-5 h-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" x2="9" y1="12" y2="12"/></svg>
+          </button>
         </form>
       </div>
     </div>
+
+    {# --- Menú desplegable (solo celular/tablet) --- #}
+    <nav x-show="menu" x-cloak x-transition
+         class="md:hidden border-t border-[#c0c6b6]/30 bg-white px-4 py-3 flex flex-col gap-1">
+      <a href="{% url 'home' %}"
+         class="px-3 py-2 rounded-lg text-sm font-medium transition {% if url == 'home' %}bg-[#719c44] text-white{% else %}text-[#353131] hover:bg-[#f2f5f0] hover:text-[#719c44]{% endif %}">
+        Inicio
+      </a>
+      <a href="{% url 'donantes:list' %}"
+         class="px-3 py-2 rounded-lg text-sm font-medium transition {% if app == 'donantes' or app == 'donativos' or app == 'iaps' or app == 'distribucion' %}bg-[#719c44] text-white{% else %}text-[#353131] hover:bg-[#f2f5f0] hover:text-[#719c44]{% endif %}">
+        Donativos
+      </a>
+    </nav>
+    
   </header>
   <div class="h-[65px] w-full"></div>
   {% endif %}
 
-  <main class="min-h-screen">
+  <main class="min-h-screen {% if user.is_authenticated and url != 'home' %}pt-10{% endif %}">
     {% if messages %}
-    <div class="max-w-6xl mx-auto px-6 pt-6 space-y-3">
+    <div class="w-full px-4 sm:px-6 pt-6 space-y-3">
       {% for message in messages %}
-      <div class="p-4 rounded-xl text-sm font-medium border {% if message.tags == 'error' %}bg-red-50 text-red-600 border-red-100{% else %}bg-japem-green/10 text-japem-green border-japem-green/20{% endif %}">
+      <div class="p-4 rounded-xl text-sm font-medium border {% if message.tags == 'error' %}bg-red-50 text-red-600 border-red-100{% else %}bg-[#719c44]/10 text-[#719c44] border-[#719c44]/20{% endif %}">
         {{ message }}
       </div>
       {% endfor %}
     </div>
     {% endif %}
-    {% block content %}{% endblock %}
-  </main>
 
-  <div
-    x-show="modalOpen"
-    x-cloak
-    class="fixed inset-0 bg-black/40 flex items-center justify-center z-[100] px-4"
-    @click.self="modalOpen = false"
-  >
+    {% if app == 'donantes' or app == 'donativos' or app == 'iaps' or app == 'distribucion' %}
+    {# ===================== GESTIÓN DE RECURSOS (migrado de Donativos/index.tsx) ===================== #}
+    <div class="min-h-screen bg-gray-50 p-2 sm:p-4 font-inter animate-fade-in-up">
+      <div class="w-full mx-auto">
+        <div class="mb-2 text-center">
+          <h1 class="text-2xl sm:text-3xl font-extrabold text-colorPrimarioJAPEM tracking-tight">Gestión de Recursos</h1>
+        </div>
+        {% include "_tabs_recursos.html" %}
+        <div class="bg-white rounded-2xl shadow-xl border border-gray-100 p-3 sm:p-6 lg:p-8 animate-fade-in-up min-h-[500px] min-w-0">
+    {% endif %}
+
+          {% block content %}{% endblock %}
+
+    {% if app == 'donantes' or app == 'donativos' or app == 'iaps' or app == 'distribucion' %}
+        </div>
+      </div>
+    </div>
+    {% endif %}
+  </main>
+  {% endwith %}
+
+  <div x-show="modalOpen" x-cloak
+       class="fixed inset-0 bg-black/40 flex items-center justify-center z-[100] px-4"
+       @click.self="modalOpen = false">
     <div id="modal-content" class="bg-white rounded-2xl shadow-xl w-full max-w-lg"></div>
   </div>
 </body>
