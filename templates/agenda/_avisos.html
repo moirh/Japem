@@ -1,0 +1,109 @@
+{# ===== AVISOS DE LA SEMANA (reemplaza al slider) ===== #}
+<div id="avisos-card" class="bg-white rounded-2xl shadow-lg border border-[#c0c6b6]/30 overflow-hidden flex flex-col">
+  <div class="p-6 border-b border-[#f2f5f0] flex justify-between items-center gap-3 bg-white">
+    <div class="min-w-0">
+      <h2 class="text-xl font-bold text-[#353131] flex items-center gap-2">
+        <svg class="text-[#719c44] shrink-0" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m3 11 18-5v12L3 14v-3z"/><path d="M11.6 16.8a3 3 0 1 1-5.8-1.6"/></svg>
+        Avisos de la Semana
+      </h2>
+      <p class="text-xs text-[#817e7e] mt-1">Noticias, eventos y comunicados de JAPEM.</p>
+    </div>
+    {% if puede_publicar_avisos %}
+    <button type="button"
+            @click="modalOpen = true"
+            hx-get="{% url 'agenda:aviso_create' %}"
+            hx-target="#modal-content"
+            class="cursor-pointer group shrink-0 bg-[#719c44] hover:bg-[#5e8239] text-white px-5 py-2.5 rounded-xl flex items-center gap-2 shadow-md hover:shadow-xl shadow-[#719c44]/20 font-bold transition-all transform hover:scale-105 active:scale-95">
+      <svg class="transition-transform duration-500 group-hover:rotate-180" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="M12 5v14"/></svg>
+      <span class="hidden sm:inline">Nuevo</span>
+    </button>
+    {% endif %}
+  </div>
+
+  <div class="p-4 space-y-4 overflow-y-auto max-h-[800px] bg-[#f9fafb]">
+    {% for aviso in avisos %}
+    <article x-data="{ mas: false }"
+             class="group bg-white border border-gray-100 rounded-2xl shadow-sm hover:shadow-lg hover:-translate-y-0.5 transition-all duration-500 overflow-hidden">
+
+      {% if aviso.imagen %}
+      <a href="{{ aviso.imagen.url }}" target="_blank" rel="noopener" title="Ver imagen completa" class="block overflow-hidden">
+        <img src="{{ aviso.imagen.url }}" alt="{{ aviso.titulo }}" loading="lazy"
+             class="w-full h-44 object-cover group-hover:scale-[1.03] transition-transform duration-700">
+      </a>
+      {% endif %}
+
+      <div class="p-5">
+        <div class="flex items-center justify-between gap-2 mb-3">
+          <div class="flex items-center gap-2 flex-wrap">
+            {% if aviso.categoria == "evento" %}
+            <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wide bg-purple-50 text-purple-700 border border-purple-100">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="4" rx="2"/><line x1="16" x2="16" y1="2" y2="6"/><line x1="8" x2="8" y1="2" y2="6"/><line x1="3" x2="21" y1="10" y2="10"/></svg>
+              Evento
+            </span>
+            {% elif aviso.categoria == "aviso" %}
+            <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wide bg-amber-50 text-amber-700 border border-amber-100">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3"/><path d="M12 9v4"/><path d="M12 17h.01"/></svg>
+              Aviso
+            </span>
+            {% else %}
+            <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wide bg-blue-50 text-blue-700 border border-blue-100">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 22h16a2 2 0 0 0 2-2V4a2 2 0 0 0-2-2H8a2 2 0 0 0-2 2v16a2 2 0 0 1-2 2Zm0 0a2 2 0 0 1-2-2v-9c0-1.1.9-2 2-2h2"/><path d="M18 14h-8"/><path d="M15 18h-5"/><path d="M10 6h8v4h-8V6Z"/></svg>
+              Noticia
+            </span>
+            {% endif %}
+            {% if aviso.es_nuevo %}
+            <span class="px-2 py-0.5 rounded-full text-[10px] font-extrabold bg-[#719c44] text-white animate-pulse">NUEVO</span>
+            {% endif %}
+          </div>
+
+          {% if puede_publicar_avisos %}
+          <div class="flex items-center gap-1 lg:opacity-0 lg:group-hover:opacity-100 transition-opacity">
+            <button type="button" title="Editar aviso"
+                    @click="modalOpen = true"
+                    hx-get="{% url 'agenda:aviso_update' aviso.pk %}"
+                    hx-target="#modal-content"
+                    class="cursor-pointer p-1.5 text-gray-300 hover:text-[#719c44] hover:bg-[#f2f5f0] rounded-lg transition-colors">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.375 2.625a1 1 0 0 1 3 3l-9.013 9.014a2 2 0 0 1-.853.505l-2.873.84a.5.5 0 0 1-.62-.62l.84-2.873a2 2 0 0 1 .506-.852z"/></svg>
+            </button>
+            <button type="button" title="Eliminar aviso"
+                    hx-post="{% url 'agenda:aviso_delete' aviso.pk %}"
+                    hx-target="#avisos-card"
+                    hx-swap="outerHTML"
+                    hx-confirm="Se eliminará este aviso permanentemente."
+                    data-confirm-title="¿Eliminar aviso?" data-confirm-button="Eliminar"
+                    class="cursor-pointer p-1.5 text-gray-300 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/></svg>
+            </button>
+          </div>
+          {% endif %}
+        </div>
+
+        <h3 class="font-bold text-gray-800 text-lg leading-snug break-words">{{ aviso.titulo }}</h3>
+        <p class="text-sm text-gray-500 mt-1.5 leading-relaxed whitespace-pre-line break-words"
+           :class="mas ? '' : 'line-clamp-3'">{{ aviso.contenido }}</p>
+        {% if aviso.contenido|length > 150 %}
+        <button type="button" @click="mas = !mas"
+                class="cursor-pointer text-xs font-bold text-[#719c44] hover:underline mt-1"
+                x-text="mas ? 'Ver menos' : 'Ver más'">Ver más</button>
+        {% endif %}
+
+        <div class="flex items-center justify-between gap-2 mt-4 pt-3 border-t border-gray-50 text-xs">
+          <span class="flex items-center gap-1.5 font-semibold text-emerald-700 bg-emerald-50 py-1.5 px-3 rounded-lg whitespace-nowrap">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="4" rx="2"/><line x1="16" x2="16" y1="2" y2="6"/><line x1="8" x2="8" y1="2" y2="6"/><line x1="3" x2="21" y1="10" y2="10"/></svg>
+            {{ aviso.fecha|date:"j M Y"|lower }}
+          </span>
+          {% if aviso.autor %}
+          <span class="text-gray-400 italic truncate">Por {{ aviso.autor.name|default:aviso.autor.username }}</span>
+          {% endif %}
+        </div>
+      </div>
+    </article>
+    {% empty %}
+    <div class="flex flex-col items-center justify-center p-8 text-[#817e7e] text-center">
+      <svg class="w-12 h-12 mb-2 opacity-20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m3 11 18-5v12L3 14v-3z"/><path d="M11.6 16.8a3 3 0 1 1-5.8-1.6"/></svg>
+      <p class="italic">Aún no hay avisos publicados.</p>
+      {% if puede_publicar_avisos %}<p class="text-xs mt-1">Publica el primero con el botón <span class="font-bold text-[#719c44]">Nuevo</span>.</p>{% endif %}
+    </div>
+    {% endfor %}
+  </div>
+</div>

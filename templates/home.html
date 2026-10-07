@@ -6,59 +6,13 @@
 
 {% block content %}
 
-{# ===== SLIDER (migrado de Slider.tsx) ===== #}
-<div class="w-full relative shadow-lg z-0 group"
-     x-data="{
-       current: 0,
-       slides: [
-         { title: 'Juntos hacemos la diferencia', subtitle: 'Comprometidos con la asistencia social y el desarrollo humano.' },
-         { title: 'Gestión Transparente', subtitle: 'Control eficiente de donativos, acuerdos y beneficiarios.' },
-         { title: 'Innovación Institucional', subtitle: 'Herramientas tecnológicas al servicio de la comunidad.' }
-       ],
-       timer: null,
-       next() { this.current = (this.current + 1) % this.slides.length },
-       prev() { this.current = (this.current - 1 + this.slides.length) % this.slides.length },
-       go(i) { this.current = i; this.restart() },
-       restart() { clearInterval(this.timer); this.timer = setInterval(() => this.next(), 5000) }
-     }"
-     x-init="restart()">
-  <div class="relative w-full h-[250px] lg:h-[400px] overflow-hidden">
-    <template x-for="(slide, i) in slides" :key="i">
-      <div class="absolute inset-0 transition-opacity duration-[1500ms]"
-           :class="current === i ? 'opacity-100' : 'opacity-0'">
-        <div class="absolute inset-0 bg-cover bg-center transition-transform duration-[10s] hover:scale-105"
-             style="background-image: url('{% static 'img/Japem.jpeg' %}')"></div>
-        <div class="absolute inset-0 bg-gradient-to-r from-[#353131]/90 via-[#353131]/40 to-transparent"></div>
-        <div class="relative z-10 h-full w-full px-6 sm:px-10 lg:px-16 flex flex-col justify-center items-start">
-          <div class="max-w-2xl">
-            <h2 class="text-3xl sm:text-4xl md:text-6xl font-extrabold text-white mb-4 leading-tight drop-shadow-lg" x-text="slide.title"></h2>
-            <p class="text-sm sm:text-lg text-gray-200 font-medium max-w-lg drop-shadow-md" x-text="slide.subtitle"></p>
-          </div>
-        </div>
-      </div>
-    </template>
+<div class="w-full px-4 sm:px-6 lg:px-8 pt-6 sm:pt-8 pb-12 relative z-10" x-data="{ open: false, type: 'acuerdo' }">
 
-    {# Flechas (visibles al pasar el mouse) #}
-    <button type="button" @click="prev(); restart()"
-            class="absolute left-4 top-1/2 -translate-y-1/2 z-20 text-white/50 hover:text-white text-4xl font-light opacity-0 group-hover:opacity-100 transition-all">&#8249;</button>
-    <button type="button" @click="next(); restart()"
-            class="absolute right-4 top-1/2 -translate-y-1/2 z-20 text-white/50 hover:text-white text-4xl font-light opacity-0 group-hover:opacity-100 transition-all">&#8250;</button>
-
-    {# Puntos #}
-    <div class="absolute bottom-16 left-1/2 -translate-x-1/2 z-20 flex items-center gap-2">
-      <template x-for="(slide, i) in slides" :key="'dot' + i">
-        <button type="button" @click="go(i)"
-                class="h-2 rounded transition-all duration-300"
-                :class="current === i ? 'w-6 bg-[#719c44]' : 'w-2 bg-white/50'"></button>
-      </template>
-    </div>
+  {# ---------- BIENVENIDA (en lugar del slider) ---------- #}
+  <div class="mb-6 sm:mb-8">
+    <h1 class="text-2xl sm:text-3xl font-extrabold text-[#353131]">¡Hola, {{ user.name|default:user.username }}!</h1>
+    <p class="text-[#817e7e] mt-1 first-letter:uppercase">{{ today|date:"l j \d\e F \d\e Y" }}</p>
   </div>
-
-  {# Gradiente inferior para fundirse con el dashboard #}
-  <div class="absolute bottom-0 left-0 w-full h-24 bg-gradient-to-t from-[#f9fafb] to-transparent pointer-events-none z-10"></div>
-</div>
-
-<div class="w-full px-4 sm:px-6 lg:px-8 pb-12 -mt-12 relative z-10" x-data="{ open: false, type: 'acuerdo' }">
 
   {# ---------- WIDGETS ---------- #}
   <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4 sm:gap-6 mb-8">
@@ -210,9 +164,11 @@
             <svg class="w-12 h-12 mb-2 opacity-20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="7" height="9" x="3" y="3" rx="1"/><rect width="7" height="5" x="14" y="3" rx="1"/><rect width="7" height="9" x="14" y="12" rx="1"/><rect width="7" height="5" x="3" y="16" rx="1"/></svg>
             <p class="italic">No hay acuerdos pendientes.</p>
           </div>
-          {% endfor %}
+            {% endfor %}
         </div>
       </div>
+
+      {% include "agenda/_avisos.html" %}
     </div>
 
     {# ===== MIS RECORDATORIOS ===== #}

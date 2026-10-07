@@ -4,7 +4,8 @@ from django.shortcuts import render
 from django.utils import timezone
 
 from accounts.models import User
-from agenda.models import Acuerdo, Recordatorio
+from accounts.permissions import can_publish_avisos
+from agenda.models import Acuerdo, Aviso, Recordatorio
 from donativos.models import Donativo
 
 
@@ -52,6 +53,8 @@ def home(request):
             "recordatorios": recordatorios,
             "donativos_mes": donativos_mes,
             "monto_mes": monto_mes,
+            "avisos": Aviso.objects.select_related("autor")[:5],
+            "puede_publicar_avisos": can_publish_avisos(user),
             "calendar_events": calendar_events,
             "proximo": proximo,
             "usuarios": usuarios,
