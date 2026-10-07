@@ -98,6 +98,17 @@ else:
 
 AUTH_USER_MODEL = "accounts.User"
 
+
+# El primero es el que se usa para contraseñas nuevas. BCrypt se agrega para
+# poder validar las contraseñas importadas de Laravel; al iniciar sesión,
+# Django las vuelve a cifrar automáticamente con el primero.
+PASSWORD_HASHERS = [
+    "django.contrib.auth.hashers.PBKDF2PasswordHasher",
+    "django.contrib.auth.hashers.PBKDF2SHA1PasswordHasher",
+    "django.contrib.auth.hashers.ScryptPasswordHasher",
+    "django.contrib.auth.hashers.BCryptPasswordHasher",
+]
+
 AUTH_PASSWORD_VALIDATORS = [
     {"NAME": "django.contrib.auth.password_validation.UserAttributeSimilarityValidator"},
     {"NAME": "django.contrib.auth.password_validation.MinimumLengthValidator"},
