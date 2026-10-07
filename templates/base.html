@@ -13,6 +13,7 @@
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://unpkg.com/htmx.org@1.9.12"></script>
   <script defer src="https://unpkg.com/alpinejs@3.14.1/dist/cdn.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
   <link rel="stylesheet" href="{% static 'css/site.css' %}">
   <script>
     tailwind.config = {
@@ -64,7 +65,13 @@
     };
   </script>
 </head>
-<body class="bg-gray-100 text-[#353131] font-inter" x-data="{ modalOpen: false }" @closemodal.window="modalOpen = false">
+<body class="bg-gray-100 text-[#353131] font-inter"
+      x-data="{ modalOpen: false }"
+      x-init="$watch('modalOpen', abierto => {
+        document.body.style.overflow = abierto ? 'hidden' : '';
+        if (!abierto) setTimeout(() => { if (!modalOpen) document.getElementById('modal-content').innerHTML = '' }, 300);
+      })"
+      x-on:close-modal.camel.window="modalOpen = false">
 
   {% with app=request.resolver_match.app_name url=request.resolver_match.url_name %}
   {% if user.is_authenticated %}
@@ -205,15 +212,8 @@
   {% endif %}
 
   <main class="min-h-screen {% if user.is_authenticated and url != 'home' %}pt-10{% endif %}">
-    {% if messages %}
-    <div class="w-full px-4 sm:px-6 pt-6 space-y-3">
-      {% for message in messages %}
-      <div class="p-4 rounded-xl text-sm font-medium border {% if message.tags == 'error' %}bg-red-50 text-red-600 border-red-100{% else %}bg-[#719c44]/10 text-[#719c44] border-[#719c44]/20{% endif %}">
-        {{ message }}
-      </div>
-      {% endfor %}
-    </div>
-    {% endif %}
+        {# Mensajes de Django: se muestran como alertas SweetAlert2 (ver script al final) #}
+    <script id="django-messages" type="application/json">[{% for m in messages %}{"tags": "{{ m.tags|escapejs }}", "text": "{{ m|escapejs }}"}{% if not forloop.last %},{% endif %}{% endfor %}]</script>
 
     {% if app == 'donantes' or app == 'donativos' or app == 'iaps' or app == 'distribucion' %}
     {# ===================== GESTIÓN DE RECURSOS (migrado de Donativos/index.tsx) ===================== #}
@@ -236,10 +236,93 @@
   </main>
   {% endwith %}
 
+    {# ===================== MODAL (migrado de components/ui/Modal.tsx) ===================== #}
   <div x-show="modalOpen" x-cloak
-       class="fixed inset-0 bg-black/40 flex items-center justify-center z-[100] px-4"
-       @click.self="modalOpen = false">
-    <div id="modal-content" class="bg-white rounded-2xl shadow-xl w-full max-w-lg"></div>
+       x-transition:enter="transition-opacity ease-out duration-300"
+       x-transition:enter-start="opacity-0"
+       x-transition:enter-end="opacity-100"
+       x-transition:leave="transition-opacity ease-in duration-300"
+       x-transition:leave-start="opacity-100"
+       x-transition:leave-end="opacity-0"
+       @keydown.escape.window="modalOpen = false"
+       class="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-[#353131]/60 backdrop-blur-sm">
+    <div id="modal-content" class="w-full flex justify-center"></div>
   </div>
+
+  {# ===================== ALERTAS (SweetAlert2, igual que el original) ===================== #}
+  <script>
+    const JAPEM_VERDE = "#719c44";
+
+    // Alerta de éxito con el estilo del original
+    function alertaExito(titulo, texto) {
+      return Swal.fire({ title: titulo, text: texto || "", icon: "success",
+                         confirmButtonColor: JAPEM_VERDE, confirmButtonText: "Aceptar" });
+    }
+
+    // Confirmación con el estilo del original ("¿Estás seguro?")
+    function confirmar(texto, titulo, textoBoton) {
+      return Swal.fire({
+        title: titulo || "¿Estás seguro?", text: texto, icon: "warning",
+        showCancelButton: true, confirmButtonColor: "#d33", cancelButtonColor: "#3085d6",
+        confirmButtonText: textoBoton || "Sí, eliminar", cancelButtonText: "Cancelar",
+      });
+    }
+
+    // 1) Botones con hx-confirm: usan SweetAlert2 en vez del confirm() del navegador
+    document.addEventListener("htmx:confirm", function (e) {
+      if (!e.detail.question) return;
+      e.preventDefault();
+      const el = e.detail.elt;
+      confirmar(e.detail.question, el.dataset.confirmTitle, el.dataset.confirmButton)
+        .then(function (r) { if (r.isConfirmed) e.detail.issueRequest(true); });
+    });
+
+    // 2) Formularios normales (sin htmx): onclick="return confirmarEnvio(event, this, 'texto')"
+    function confirmarEnvio(event, boton, texto, titulo, textoBoton) {
+      event.preventDefault();
+      confirmar(texto, titulo, textoBoton).then(function (r) {
+        if (r.isConfirmed) boton.form.submit();
+      });
+      return false;
+    }
+
+    // 3) Si el formulario del modal tiene errores, se vuelve a mostrar dentro del modal
+    //    (en lugar de reemplazar la tabla de fondo)
+    document.addEventListener("htmx:beforeSwap", function (e) {
+      const panel = document.getElementById("modal-panel");
+      const origen = e.detail.requestConfig && e.detail.requestConfig.elt;
+      if (!panel || !origen || !panel.contains(origen)) return;
+      const trigger = e.detail.xhr.getResponseHeader("HX-Trigger") || "";
+      if (!trigger.includes("closeModal")) e.detail.target = panel;
+    });
+
+    // 4) Mensaje de éxito después de guardar o eliminar (data-success-title / data-success-text).
+    //    Se revisa antes del swap porque el botón de eliminar desaparece al refrescar la tabla.
+    document.addEventListener("htmx:beforeSwap", function (e) {
+      const el = e.detail.requestConfig && e.detail.requestConfig.elt;
+      if (!el || !el.dataset || !el.dataset.successTitle || e.detail.xhr.status >= 300) return;
+      const trigger = e.detail.xhr.getResponseHeader("HX-Trigger") || "";
+      if (el.tagName === "FORM" && !trigger.includes("closeModal")) return;
+      alertaExito(el.dataset.successTitle, el.dataset.successText);
+    });
+
+    // 5) Mensajes de Django (messages.success / messages.error) como alertas
+    document.addEventListener("DOMContentLoaded", async function () {
+      const nodo = document.getElementById("django-messages");
+      if (!nodo) return;
+      const tipos = {
+        success: ["¡Listo!", "success", JAPEM_VERDE],
+        error:   ["Error", "error", "#353131"],
+        warning: ["Atención", "warning", JAPEM_VERDE],
+        info:    ["Aviso", "info", JAPEM_VERDE],
+      };
+      for (const m of JSON.parse(nodo.textContent)) {
+        const tipo = Object.keys(tipos).find(function (k) { return m.tags.includes(k); }) || "info";
+        const [titulo, icono, color] = tipos[tipo];
+        await Swal.fire({ title: titulo, text: m.text, icon: icono,
+                          confirmButtonColor: color, confirmButtonText: "Aceptar" });
+      }
+    });
+  </script>
 </body>
 </html>

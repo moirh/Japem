@@ -76,7 +76,7 @@
                      value="1" form="devolver-{{ item.pk }}"
                      class="w-14 px-1 py-1 border border-japem-accent rounded-lg text-center text-xs">
               <button type="submit" form="devolver-{{ item.pk }}"
-                      onclick="return confirm('¿Retirar esta cantidad de {{ item.nombre_producto|escapejs }} por merma/devolución?');"
+                      onclick="return confirmarEnvio(event, this, '¿Retirar esta cantidad de {{ item.nombre_producto|escapejs }} por merma/devolución?', '¿Confirmar retiro?', 'Sí, retirar');"
                       class="text-red-500 hover:underline text-xs font-bold">Devolver</button>
             </div>
             {% else %}

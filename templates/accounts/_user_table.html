@@ -29,7 +29,9 @@
             hx-post="{% url 'accounts:user_delete' u.pk %}"
             hx-target="#users-table"
             hx-swap="outerHTML"
-            hx-confirm="¿Eliminar este usuario?"
+            hx-confirm="Se eliminará este usuario permanentemente."
+              data-success-title="¡Eliminado!"
+              data-success-text="El usuario ha sido eliminado."
             class="text-red-500 hover:underline font-medium"
           >Eliminar</button>
           {% endif %}

@@ -96,7 +96,7 @@
             {% if a.user_id == user.id %}
             <form method="post" action="{% url 'agenda:acuerdo_delete' a.pk %}">
               {% csrf_token %}
-              <button type="submit" onclick="return confirm('¿Eliminar este acuerdo?');" class="text-japem-accent hover:text-red-500 transition" title="Eliminar">&times;</button>
+              <button type="submit" onclick="return confirmarEnvio(event, this, 'Se eliminará este acuerdo permanentemente.');" class="text-japem-accent hover:text-red-500 transition" title="Eliminar">&times;</button>
             </form>
             {% endif %}
           </div>
@@ -139,7 +139,7 @@
               </form>
               <form method="post" action="{% url 'agenda:recordatorio_delete' r.pk %}">
                 {% csrf_token %}
-                <button type="submit" onclick="return confirm('¿Eliminar este recordatorio?');" class="text-japem-accent hover:text-red-500 p-1.5 rounded-md hover:bg-red-50 transition" title="Eliminar">&times;</button>
+                <button type="submit" onclick="return confirmarEnvio(event, this, 'Se eliminará este recordatorio permanentemente.');" class="text-japem-accent hover:text-red-500 p-1.5 rounded-md hover:bg-red-50 transition" title="Eliminar">&times;</button>
               </form>
             </div>
           </div>
