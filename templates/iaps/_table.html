@@ -101,10 +101,13 @@
             {# Acciones #}
             <td class="px-6 py-4 text-gray-800 border-b border-gray-100 text-sm">
               <div class="flex gap-2 justify-start">
-                <a href="{% url 'iaps:detail' iap.pk %}" title="Ver Detalles"
-                   class="cursor-pointer p-1.5 hover:bg-blue-50 text-[#817e7e] hover:text-blue-600 rounded transition hover:scale-110">
+                                <button type="button" title="Ver Detalles"
+                        @click="modalOpen = true"
+                        hx-get="{% url 'iaps:detail' iap.pk %}"
+                        hx-target="#modal-content"
+                        class="cursor-pointer p-1.5 hover:bg-blue-50 text-[#817e7e] hover:text-blue-600 rounded transition hover:scale-110">
                   <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2.062 12.348a1 1 0 0 1 0-.696 10.75 10.75 0 0 1 19.876 0 1 1 0 0 1 0 .696 10.75 10.75 0 0 1-19.876 0"/><circle cx="12" cy="12" r="3"/></svg>
-                </a>
+              </button>
                 {% if can_edit %}
                 <button type="button" title="Editar"
                         @click="modalOpen = true"

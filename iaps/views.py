@@ -9,7 +9,7 @@ from django.views.decorators.http import require_POST
 from accounts.permissions import can_edit_iaps
 
 from .forms import IapForm
-from .models import Iap
+from .models import SEPARATOR, Iap
 
 
 @login_required
@@ -58,6 +58,10 @@ def iap_delete(request, pk):
 @login_required
 def iap_detail(request, pk):
     iap = get_object_or_404(Iap, pk=pk)
+    if request.htmx:
+        # Ficha Técnica en modal (igual que el "Ver Detalles" de IapTable.tsx)
+        tipos = [t.strip() for t in (iap.tipo_beneficiario or "").split(SEPARATOR) if t.strip()]
+        return render(request, "iaps/_detail.html", {"iap": iap, "tipos_beneficiario": tipos})
     return render(request, "iaps/detail.html", {"iap": iap})
 
 

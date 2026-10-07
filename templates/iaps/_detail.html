@@ -1,0 +1,73 @@
+{% extends "_modal.html" %}
+{# Ficha Técnica de la IAP — migrado del "MODAL VER DETALLES" de IapTable.tsx #}
+
+{% block size %}max-w-4xl{% endblock %}
+
+{% block title %}Ficha Técnica{% endblock %}
+
+{% block body %}
+<div class="space-y-6 p-2">
+
+  {# Encabezado #}
+  <div class="text-center border-b border-[#f2f5f0] pb-6">
+    <div class="inline-block p-4 bg-[#f2f5f0] rounded-full mb-3 border-4 border-white shadow-sm">
+      <svg class="text-[#719c44]" width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 22V4a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v18Z"/><path d="M6 12H4a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h2"/><path d="M18 9h2a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2h-2"/><path d="M10 6h4"/><path d="M10 10h4"/><path d="M10 14h4"/><path d="M10 18h4"/></svg>
+    </div>
+    <h2 class="text-xl font-bold text-[#353131] uppercase break-words">{{ iap.nombre_iap }}</h2>
+    {% if iap.rubro %}
+    <span class="px-3 py-1 bg-gray-100 text-gray-600 rounded-full text-xs font-bold uppercase mt-2 inline-block">{{ iap.rubro }}</span>
+    {% endif %}
+  </div>
+
+  <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+    {# Clasificación y actividad #}
+    <div class="bg-white p-5 rounded-2xl border border-[#e5e7eb] shadow-sm">
+      <p class="text-xs font-bold text-[#817e7e] uppercase mb-2">Clasificación &amp; Actividad</p>
+      <div class="flex flex-wrap gap-1 mb-3">
+        {% for c in iap.clasificacion_list %}
+        {% with letra=c|slice:":1" %}
+        <span class="px-2 py-0.5 text-xs font-bold border rounded
+          {% if letra == 'A' %}bg-purple-50 text-purple-700 border-purple-200{% elif letra == 'B' %}bg-blue-50 text-blue-700 border-blue-200{% elif letra == 'C' %}bg-orange-50 text-orange-700 border-orange-200{% else %}bg-gray-50 text-gray-600 border-gray-200{% endif %}">
+          {{ c }}
+        </span>
+        {% endwith %}
+        {% endfor %}
+      </div>
+      <ul class="text-sm text-[#353131] list-disc list-inside space-y-1">
+        {% for a in iap.actividad_list %}
+        <li class="leading-snug">{{ a }}</li>
+        {% empty %}
+        <li class="list-none text-[#817e7e] text-xs">Sin actividad registrada.</li>
+        {% endfor %}
+      </ul>
+    </div>
+
+    {# Población atendida #}
+    <div class="bg-white p-5 rounded-2xl border border-[#e5e7eb] shadow-sm">
+      <p class="text-xs font-bold text-[#817e7e] uppercase mb-2">Población Atendida</p>
+      <span class="text-3xl font-extrabold text-[#353131] block mb-2">{{ iap.personas_beneficiadas }} Total</span>
+      <div class="flex flex-col gap-1">
+        {% for t in tipos_beneficiario %}
+        <span class="bg-[#f2f5f0] text-[#719c44] px-3 py-1 rounded text-xs font-bold border border-[#c0c6b6]">{{ t }}</span>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+
+  {# Necesidades #}
+  <div class="bg-[#f9fafb] p-5 rounded-2xl border border-[#e5e7eb]">
+    <h4 class="text-sm font-bold text-[#353131] flex items-center gap-2 mb-3">
+      <svg class="text-[#719c44]" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"/></svg>
+      Necesidades Especiales
+    </h4>
+    <p class="text-sm text-[#555] bg-white p-3 rounded-xl border border-[#e5e7eb]">{{ iap.necesidad_complementaria|default:"Sin registro." }}</p>
+  </div>
+
+  <div class="pt-2">
+    <button type="button" @click="modalOpen = false"
+            class="cursor-pointer w-full py-3 bg-[#353131] hover:bg-black text-white font-bold rounded-xl transition">
+      Cerrar Ficha
+    </button>
+  </div>
+</div>
+{% endblock %}
