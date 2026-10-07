@@ -7,7 +7,7 @@ de todos modos — el frontend original solo hacía lo primero."""
 
 DONATIVOS_ROLES = {"admin", "superadmin", "editor", "donativos"}
 IAP_ROLES = {"admin", "superadmin", "editor", "asistencial"}
-
+AVISOS_ROLES = {"admin", "superadmin"}
 
 def can_edit_donativos(user):
     """Donantes, Donativos, Distribución y Entregas: mismos roles que
@@ -18,3 +18,7 @@ def can_edit_donativos(user):
 def can_edit_iaps(user):
     """IAPs: mismos roles que `allowedRoles` en IapTable.tsx."""
     return user.is_authenticated and user.role in IAP_ROLES
+
+def can_publish_avisos(user):
+    """Avisos de la Semana (Inicio): solo admin y superadmin publican."""
+    return user.is_authenticated and user.role in AVISOS_ROLES

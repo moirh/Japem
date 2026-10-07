@@ -1,0 +1,90 @@
+{% extends "_modal.html" %}
+{# Formulario de Avisos de la Semana (publicar / editar) #}
+
+{% block size %}max-w-2xl{% endblock %}
+
+{% block title %}{% if aviso %}Editar Aviso{% else %}Nuevo Aviso{% endif %}{% endblock %}
+
+{% block icon %}<svg class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m3 11 18-5v12L3 14v-3z"/><path d="M11.6 16.8a3 3 0 1 1-5.8-1.6"/></svg>{% endblock %}
+
+{% block body %}
+<form hx-post="{% if aviso %}{% url 'agenda:aviso_update' aviso.pk %}{% else %}{% url 'agenda:aviso_create' %}{% endif %}"
+      hx-encoding="multipart/form-data"
+      hx-target="#avisos-card"
+      hx-swap="outerHTML"
+      x-data="{ preview: '{% if aviso.imagen %}{{ aviso.imagen.url }}{% endif %}', quitar: false }"
+      class="space-y-5">
+
+  {# Categoría #}
+  <div>
+    <label class="block text-xs font-bold text-gray-500 uppercase mb-2 ml-1">Categoría</label>
+    <div class="grid grid-cols-3 gap-2 sm:gap-3">
+      {% for radio in form.categoria %}
+      <label class="cursor-pointer border rounded-xl p-3 text-center text-sm font-medium transition-all border-gray-200 bg-white hover:border-gray-300 has-[:checked]:border-[#719c44] has-[:checked]:bg-[#f2f5f0] has-[:checked]:text-[#719c44]">
+        {{ radio.tag }}{{ radio.choice_label }}
+      </label>
+      {% endfor %}
+    </div>
+  </div>
+
+  {# Título y fecha #}
+  <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+    <div class="sm:col-span-2 space-y-1">
+      <label class="block text-xs font-bold text-gray-500 uppercase ml-1">Título</label>
+      {{ form.titulo }}
+      {% if form.titulo.errors %}<p class="text-red-500 text-xs ml-1">{{ form.titulo.errors.0 }}</p>{% endif %}
+    </div>
+    <div class="space-y-1">
+      <label class="block text-xs font-bold text-gray-500 uppercase ml-1">Fecha</label>
+      {{ form.fecha }}
+      {% if form.fecha.errors %}<p class="text-red-500 text-xs ml-1">{{ form.fecha.errors.0 }}</p>{% endif %}
+    </div>
+  </div>
+
+  {# Contenido #}
+  <div class="space-y-1">
+    <label class="block text-xs font-bold text-gray-500 uppercase ml-1">Contenido</label>
+    {{ form.contenido }}
+    {% if form.contenido.errors %}<p class="text-red-500 text-xs ml-1">{{ form.contenido.errors.0 }}</p>{% endif %}
+  </div>
+
+  {# Imagen opcional con vista previa #}
+  <div class="space-y-1">
+    <label class="block text-xs font-bold text-gray-500 uppercase ml-1">
+      Imagen <span class="normal-case font-normal text-gray-400">(opcional · JPG o PNG, máximo 5 MB)</span>
+    </label>
+    <input type="file" name="{{ form.imagen.html_name }}" accept="image/*" class="hidden" x-ref="archivo"
+           @change="if ($event.target.files[0]) { preview = URL.createObjectURL($event.target.files[0]); quitar = false }">
+    <input type="checkbox" name="{{ form.quitar_imagen.html_name }}" class="hidden" :checked="quitar">
+
+    <div x-show="preview" x-cloak class="relative rounded-xl overflow-hidden border border-gray-200 bg-white">
+      <img :src="preview" alt="Vista previa" class="w-full h-44 object-cover">
+      <div class="absolute top-2 right-2 flex gap-2">
+        <button type="button" @click="$refs.archivo.click()"
+                class="cursor-pointer bg-white/90 hover:bg-white text-[#353131] text-xs font-bold px-3 py-1.5 rounded-lg shadow">Cambiar</button>
+        <button type="button" @click="preview = ''; quitar = true; $refs.archivo.value = ''"
+                class="cursor-pointer bg-white/90 hover:bg-red-50 text-red-600 text-xs font-bold px-3 py-1.5 rounded-lg shadow">Quitar</button>
+      </div>
+    </div>
+
+    <button type="button" x-show="!preview" @click="$refs.archivo.click()"
+            class="cursor-pointer w-full flex flex-col items-center justify-center gap-1 py-6 border-2 border-dashed border-[#c0c6b6] rounded-xl bg-white text-[#817e7e] hover:border-[#719c44] hover:text-[#719c44] hover:bg-[#f2f5f0] transition-all">
+      <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="3" rx="2" ry="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"/></svg>
+      <span class="text-sm font-medium">Subir imagen</span>
+    </button>
+    {% if form.imagen.errors %}<p class="text-red-500 text-xs ml-1">{{ form.imagen.errors.0 }}</p>{% endif %}
+  </div>
+
+  <div class="flex justify-end gap-3 pt-4 border-t border-[#c0c6b6]/30">
+    {% csrf_token %}
+    <button type="button" @click="modalOpen = false"
+            class="cursor-pointer px-6 py-3 text-[#817e7e] font-bold hover:bg-[#f2f5f0] rounded-xl transition-all">
+      Cancelar
+    </button>
+    <button type="submit"
+            class="cursor-pointer px-8 py-3 bg-[#719c44] hover:bg-[#5e8239] text-white font-bold rounded-xl shadow-lg shadow-[#719c44]/30 transition-all transform active:scale-95">
+      {% if aviso %}Guardar Cambios{% else %}Publicar Aviso{% endif %}
+    </button>
+  </div>
+</form>
+{% endblock %}
