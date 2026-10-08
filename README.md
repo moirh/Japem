@@ -1,6 +1,6 @@
-# 🚀 Proyecto JAPEM
+# 🚀 SIGDA
 
-Sistema de la **Junta de Asistencia Privada del Estado de México** para la gestión de donantes, donativos, inventario, instituciones (IAPs), distribución y entregas.
+**Sistema Integral de Gestión de Donativos y Asistencia** de la **Junta de Asistencia Privada del Estado de México (JAPEM)**: gestión de donantes, donativos, inventario, instituciones (IAPs), distribución y entregas.
 
 Desarrollado en **Django 5.2** con **HTMX**, **Alpine.js** y **Tailwind CSS** (por CDN, sin compilar nada con npm).
 A continuación se listan los pasos básicos para instalarlo y ponerlo en marcha en tu entorno local.
